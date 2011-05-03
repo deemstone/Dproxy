@@ -17,4 +17,13 @@ exports.init = function(){
 function parseConfig(config){
 	//按照格式解析配置 把结果的数据结构存储在全局的map里面 其他方法使用
 	
+	//匹配出所有块的声明行  localhost {}
+	//
+	//循环处理每个块
+	//
+	//存储到redis库里  localhost/jspro/base.js  xnimg.cn/jspro/base.js -> ip:uri
 }
+
+exports.testURL = function(url){
+	
+};
