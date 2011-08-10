@@ -6,11 +6,11 @@ var sifter = require('./sifter.js');
 var online = require('./methods/online.js');  //这是整个过滤流程的最后一步
 
 //初始化列表维护相关服务
-sifter.init();
+//sifter.init();
 
 //启动服务
 var server = http.createServer(function(request, response) {
-	sys.log('--> : init the http server');
+	console.log('['+ request.connection.remoteAddress + '] --> : new Request - ', request.url);
 	//check if this request is listed in the sifter
 	if( sifter.check(request, response) ) return;
 	
@@ -19,6 +19,6 @@ var server = http.createServer(function(request, response) {
 	return true;
 
 });
-server.listen(80);
+server.listen(7070);
 
-sys.log('--> : Proxy Server listening port 80 !!');
+sys.log('--> : Proxy Server listening port 7070 !!');
