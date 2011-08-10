@@ -3,16 +3,18 @@
 var staticServer = {
 	descript: '',
 	exact: {
-		'/a20933/n/core/base-all.js': 'file:/Users/Lijicheng/htdocs/xn.static/n/core/base-all.js',
-		'/a20933/jspro/xn.app.addFriend.js': 'file:/Users/Lijicheng/htdocs/xn.static/jspro/xn.app.addFriend.js',
-		'/a20993/jspro/base-old.js': 'http://s.xnimg.cn/a20993/jspro/base.js',
-		'/a20993/jspro/xn.app.addFriend.js': 'host:10.2.16.161'
+		//'/a20933/n/core/base-all.js': 'local:/Users/Lijicheng/htdocs/xn.static/n/core/base-all.js',
+		//'/a20933/jspro/xn.app.addFriend.js': 'local:/Users/Lijicheng/htdocs/xn.static/jspro/xn.app.addFriend.js',
+		//'/a20993/jspro/base-old.js': 'http://s.xnimg.cn/a20993/jspro/base.js',
+		//'/a20993/jspro/xn.app.addFriend.js': 'remote:10.2.16.161'
 	},
 	rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ],
 	location: {
-		'/apps/alumna/': 'dir:/Users/Lijicheng/htdocs/xn.static/apps/alumna/',
+		'/webpager/': 'remote:10.2.16.123'//,
+		//'/apps/alumna/': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/',
+		//'~ /apps/alumna/(.*)\.js': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/$1.js'  //还没有实现
 	},
-	domain: 'handler'
+	//domain: 'handler'
 };
 
 module.exports = {

@@ -21,7 +21,7 @@ url = domain + uri
 method:
 -------
 
-host:10.2.16.161  //从另一台测试机上取内容
+remote:10.2.16.161  //从另一台测试机上取内容
 http://xnimg.cn/jspro/base.js  //从线上机器取内容
 local:/var/www/jspro/base.js  //本地文件or文件夹
 fastcgi:127.0.0.1:8080
@@ -30,14 +30,15 @@ fastcgi:127.0.0.1:8080
 为了查找效率,分域名存储
 
 domain1: {
-	rewrite: 'regax'
 	完全:{
 		url1: 'method: 参数',
 		url2: ''
 	},
-	regax: {
+	rewrite: 'regax',
+	location: {
 		reg1: 'method: '
-	}
+	},
+	domain: ''
 }
 
 addURL('exact', 'xnimg.cn', '/jspro/base.js', 'local:/var/www/jspro/base.js' );

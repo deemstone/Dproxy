@@ -22,3 +22,10 @@ var server = http.createServer(function(request, response) {
 server.listen(7070);
 
 sys.log('--> : Proxy Server listening port 7070 !!');
+
+//处理各种错误
+process.on('uncaughtException', function(err)
+{
+    console.log("\nError!!!!");
+    console.log(err);
+});
