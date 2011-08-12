@@ -9,8 +9,8 @@ exports.serve = function(req, res){
 	req.headers['proxy-connection'] = 'close';
 
 	var uri = req.url.replace(/http\:\/\/[^\/]+/,'');
-	var p = url.parse(req.url);
-	console.log(uri);
+	//var p = url.parse(req.url);
+	//console.log(uri);
 	//console.log(p.pathname + p.search + p.hash);
 
 	var options = {

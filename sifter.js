@@ -22,7 +22,8 @@ exports.check = function(req, res){
 	//匹配
 	var vector = null;  //后面检测到匹配后 会把contentHandler存到这里
 	var host = req.headers.host;
-	var uri = url.parse( req.url ).pathname;
+	//var uri = url.parse( req.url ).pathname;
+	var uri = req.url.replace(/http\:\/\/[^\/]+/,'');
 	
 	//首先判断这个host下是否有定义的转发列表
 	if( !(host in routeList) ) return false;

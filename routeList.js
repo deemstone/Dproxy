@@ -19,5 +19,10 @@ var staticServer = {
 
 module.exports = {
 	'xnimg.cn': staticServer,
-	's.xnimg.cn': staticServer
+	's.xnimg.cn': staticServer,
+	'wpi.renren.com': {
+		exact: {
+			'/wtalk/ime.htm?v=5': 'local:/Users/Lijicheng/htdocs/ime.htm'
+		}
+	}
 };
