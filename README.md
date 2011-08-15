@@ -18,7 +18,7 @@
 local - 本地文件
 remote - 某指定host请求
 http - 某线上文件
-url - fastcgi
+url - fastcgi(目前没有实现)
 
 处理一个请求的流程:
 -------------------
