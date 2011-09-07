@@ -29,3 +29,11 @@ process.on('uncaughtException', function(err)
     console.log("\nError!!!!");
     console.log(err);
 });
+
+
+/**
+ * 启动时候的可选参数
+ * port 代理监听的端口号
+ * router 指定的路由配置文件
+ * GUI外壳程序
+ */

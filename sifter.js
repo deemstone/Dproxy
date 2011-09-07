@@ -35,7 +35,7 @@ exports.check = function(req, res){
 	 * {handler: '', path: '', uri: ''}
 	 */
 	//首先检查是否有完全匹配项
-	if( uri in section.exact ){
+	if( section.exact && uri in section.exact ){
 		vector = {
 			handler: section.exact[uri],
 			uri: uri
@@ -49,7 +49,7 @@ exports.check = function(req, res){
 		}
 
 		//如果是正则匹配的条目,后续处理的contentHandler会收到一些额外的信息 通过正则匹配的结果
-		var wildcard = section.location;
+		var wildcard = section.location || {};
 		for(l in wildcard){
 			//TODO: 判断l是否~ 是否使用正则
 

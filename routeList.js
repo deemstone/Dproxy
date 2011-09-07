@@ -10,7 +10,9 @@ var staticServer = {
 	},
 	rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ],
 	location: {
-		'/webpager/': 'remote:10.2.16.123'//,
+		//'/webpager/': 'remote:10.2.16.123'//,
+		'/jspro/xn.app.webpager.js': 'remote:10.2.16.123',
+		'/jspro/pager-channel6.js': 'remote:10.2.16.123'
 		//'/apps/alumna/': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/',
 		//'~ /apps/alumna/(.*)\.js': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/$1.js'  //还没有实现
 	},
@@ -24,5 +26,8 @@ module.exports = {
 		exact: {
 			'/wtalk/ime.htm?v=5': 'local:/Users/Lijicheng/htdocs/ime.htm'
 		}
+	},
+	'test.cooer.net': {
+		//domain: 'remote:10.2.16.123'
 	}
 };
