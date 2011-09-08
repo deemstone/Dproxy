@@ -15,7 +15,7 @@ var staticServer = {
 		'/jspro/pager-channel6.js': 'remote:10.2.16.123'
 		//'/apps/alumna/': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/',
 		//'~ /apps/alumna/(.*)\.js': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/$1.js'  //还没有实现
-	},
+	}
 	//domain: 'handler'
 };
 
