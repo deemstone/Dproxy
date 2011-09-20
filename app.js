@@ -7,10 +7,17 @@ var online = require('./methods/online.js');  //这是整个过滤流程的最�
 
 //初始化列表维护相关服务
 //sifter.init();
-
+var unid = 1;
 //启动服务
 var server = http.createServer(function(request, response) {
-	console.log('['+ request.connection.remoteAddress + '] --> : new Request - ', request.url);
+	//console.log('['+ request.connection.remoteAddress + '] --> : new Request - ', request.url);
+	var apInfo = JSON.stringify({
+		method: request.method,
+		url: request.url,
+		headers: request.headers,
+		httpVersion: request.httpVersion
+	});
+	IPC.write('$transport:$new:'+ unid++ +'::'+ apInfo);
 	//check if this request is listed in the sifter
 	if( sifter.check(request, response) ) return;
 	
@@ -21,11 +28,11 @@ var server = http.createServer(function(request, response) {
 });
 
 //处理各种错误
-//process.on('uncaughtException', function(err)
-//{
-//    console.log("\nError!!!!");
-//    console.log(err);
-//});
+process.on('uncaughtException', function(err)
+{
+    console.log("\nError!!!!");
+    console.log(err);
+});
 
 
 /**
@@ -36,7 +43,7 @@ var server = http.createServer(function(request, response) {
  */
 IPC.on('message', function(message){
 	//if(message == 'exit') process.exit(0);
-	console.log(message);
+	console.log('<Message> :', message);
 	//var msg = IPC.parseCmd(message);
 	//var resStr = '响应命令:'+ msg.cmd + IPC.parseAppendix(message).test; 
 	message.appendix.response = 'response recevived!!!';
@@ -47,6 +54,6 @@ var socketfile = process.argv[2];  //从命令行参数里取第三个参数,是
 if(socketfile){
 	IPC.createConnection(socketfile);
 }
-console.log(IPC);
+//console.log(IPC);
 server.listen(7070);
 console.log('--> : Proxy Server listening port 7070 !!');

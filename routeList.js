@@ -15,19 +15,25 @@ var staticServer = {
 		'/jspro/pager-channel6.js': 'remote:10.2.16.123'
 		//'/apps/alumna/': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/',
 		//'~ /apps/alumna/(.*)\.js': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/$1.js'  //还没有实现
-	}
-	//domain: 'handler'
+	},
+	domain: 'remote:10.2.74.111'
 };
 
 module.exports = {
 	'xnimg.cn': staticServer,
 	's.xnimg.cn': staticServer,
 	'wpi.renren.com': {
-		exact: {
-			'/wtalk/ime.htm?v=5': 'local:/Users/Lijicheng/htdocs/ime.htm'
-		}
+		//exact: {
+		//	'/wtalk/ime.htm?v=5': 'local:/Users/Lijicheng/htdocs/ime.htm'
+		//}
 	},
 	'test.cooer.net': {
 		//domain: 'remote:10.2.16.123'
+	},
+	'share.renren.com': {
+		domain: 'remote:10.3.17.59'
+	},
+	'status.renren.com': {
+		domain: 'remote:10.3.16.13'
 	}
 };
