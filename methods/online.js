@@ -1,7 +1,7 @@
 var http = require('http');
 var url = require('url');
 
-exports.serve = function(req, res){
+exports.serve = function(req, res, pipe){
 	//直接从线上取回来给用户
 
 	//这里不知道为什么 keep-alive的话 hdn的图片加载不出来
@@ -12,7 +12,7 @@ exports.serve = function(req, res){
 	//console.log(uri);
 	//console.log(p.pathname + p.search + p.hash);
 	//req.headers.cookie += 'at=1; aca=1; wpsid=13150351602837; ';
-
+//{{代理服务核心逻辑
 	var options = {
 		host: req.headers['host'],
 		method: req.method,
@@ -21,7 +21,12 @@ exports.serve = function(req, res){
 	};
 	var p_request = http.request(options, function(p_response){
 		res.writeHead(p_response.statusCode, p_response.headers);
-		console.log("<-- : [Online] "+ req.method +":"+ p_response.statusCode + " " + req.url);
+
+		pipe.write('response', {
+			status: p_response.statusCode,
+			headers: p_response.headers
+		});
+		//console.log("<-- : [Online] "+ req.method +":"+ p_response.statusCode + " " + req.url);
 		if('set-cookie' in p_response.headers){
 			console.log("<Set-Cookie>", p_response.headers['set-cookie']);
 		}
@@ -48,12 +53,26 @@ exports.serve = function(req, res){
 		//}
 
 	});
-
 	req.on('data', function(chunk){
 		p_request.write(chunk, 'binary');
 	});
 	req.on('end', function(){
 		p_request.end();
 	});
+//}}End
+
+//{{错误处理
+	//远端服务器错误
+	p_request.on('error', function(e){
+		console.log('<ERROR-proxy> :'+ req.url, e);
+		res.end();
+	});
+
+	//客户端手动abort
+	req.on('close', function(e){
+		p_request.abort();
+		console.log('<ERROR-client> :'+ req.url, e);
+	});
+//}}End
 }
 	

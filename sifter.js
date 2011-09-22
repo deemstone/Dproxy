@@ -1,24 +1,23 @@
 /*
  * 读取配置文件,并监视这个文件
  * 对其他模块提供 判断是否有记录的方法
+ * 编辑配置
+ * 保存配置
  */
-
-//var fs = require('fs');
-//var iniReader = require('inireader');
 var url = require('url');  //用来处理url
-
-var methods = {
-	local: require('./methods/local.js'),  //用本地文件相应请求
-	remote: require('./methods/remote.js')  //代理到其他测试服务器取文件
-};
-
 var routeList = require('./routeList.js');  //开发临时使用的列表数据结构
+
+//可用的Methods
+var methods;
+exports.setMethods = function(ms){
+	methods = ms;
+};
 
 /*
  * 分发url,如果test成功
  * 返回true 并直接处理这个request
  */
-exports.check = function(req, res){
+exports.check = function(req, res, pipe){
 	//匹配
 	var vector = null;  //后面检测到匹配后 会把contentHandler存到这里
 	var host = req.headers.host;
@@ -93,24 +92,38 @@ exports.check = function(req, res){
 		return true;
 
 	}else{
+		pipe.write('process', {
+			handler: 'online'
+		});
 		return false;  //没有找到任何匹配
 	}
 
 	function contentHandler(vector){
 		//解析handler那段字符串
 		vector.handler = parseHandler(vector.handler);
+		vector.pipe = pipe;
 
-		console.log('-~~~- : processing ... ', vector.handler.method);
+		//console.log('-~~~- : processing ... ', vector.handler.method);
 		//分发给对应的模块处理
 		var m = vector.handler.method;
 		if(m in methods){
 			methods[m].serve(req, res, vector);
+
+			//告诉大家已经选择了处理方式
+			pipe.write('process', {
+				handler: m
+			});
 		}else{
 			//没有这个模块.. 可能是配置文件写错了
 			console.log('没有这个类型的handler: ', m);
 			res.writeHead(500, {"Content-Type": "text/plain"});
 			res.write("调试代理服务器配置错误\n");
 			res.end();
+
+			//向管道补充一条response更新
+			pipe.write('error', {
+				handler: 'error'
+			});
 		}
 	}
 };
@@ -166,38 +179,4 @@ function makeRegex(expression){
 	//if(tags.length) matcher.tags = tags;
 
 	return regex;
-}
-
-//初始化,读取列表 并监视文件
-exports.init = function(){
-	//
-	//加载上一次保存的设置
-	var loadConfig = function(){
-		//加载文件 
-		//var fp = './map.conf';
-		//var config = fs.readFileSync(fp);
-		////解析文件
-		//config = parseConfig(config);
-		//return config;
-		var cfg = new iniReader.IniReader();
-		cfg.load('./map.cfg');
-		return cfg.getBlock();
-		
-	};
-
-	var parseConfig = function(config){
-		//按照格式解析配置 把结果的数据结构存储在全局的map里面 其他方法使用
-		
-		//匹配出所有块的声明行  localhost {}
-		//
-		//循环处理每个块
-		//
-		//存储到redis库里  localhost/jspro/base.js  xnimg.cn/jspro/base.js -> ip:uri
-	};
-	config = loadConfig();
-
-	//初始化一种 列表
-	this.vlist = new VectorList(config);
-	//开始接受服务
-	//fs.watchFile(fp, function(c,p) { update_iplist(); });
 }
