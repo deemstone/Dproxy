@@ -20,28 +20,26 @@ exports.setMethods = function(ms){
 exports.check = function(req, res, pipe){
 	//匹配
 	var vector = null;  //后面检测到匹配后 会把contentHandler存到这里
-	var host = req.headers.host;
 	//var uri = url.parse( req.url ).pathname;
 	var uri = req.url.replace(/http\:\/\/[^\/]+/,'');
-	
-	//首先判断这个host下是否有定义的转发列表
-	if( !(host in routeList) ) return false;
-	//该域名下的配置
-	var section = routeList[host];
 
 	/*
 	 * vector结构
-	 * {handler: '', path: '', uri: ''}
+	 * {handler: [handler, argument], path: '', uri: ''}
 	 */
-	//首先检查是否有完全匹配项
-	if( section.exact && uri in section.exact ){
+	if( req.url in routeList.exact ){ //首先检查是否有完全匹配项
 		vector = {
-			handler: section.exact[uri],
+			handler: routeList.exact[req.url],
 			uri: uri
 		};
 
-	//然后逐个检测是否有正则匹配的项
-	}else{
+	}else{ //然后检测域名范围的设置
+		var host = req.headers.host;
+		//首先判断这个host下是否有定义的转发列表
+		if( !(host in routeList.sections) ) return false; //没有的话那就没有特殊路由了,返回false从线上代理回来
+		//该域名下的配置
+		var section = routeList.sections[host];
+
 		//如果有rewrite设置,先处理url
 		if(section.rewrite){
 			uri = rewrite(uri, section.rewrite);
@@ -77,13 +75,13 @@ exports.check = function(req, res, pipe){
 		}
 	}
 	
-	//处理这个请求,可以依赖req res vector
+	//如果找到了对应的设置,处理这个请求,可以依赖req res vector
 	if(vector){
 		//开始特殊的处理
 		contentHandler(vector);
 		return true;
 
-	}else if(section.domain){  //domain策略
+	}else if(section.domain){  //还没完呢,如果没有匹配的location,判断是否有domain的设置
 		vector = {
 			handler: section.domain,
 			uri: uri
@@ -91,28 +89,36 @@ exports.check = function(req, res, pipe){
 		contentHandler(vector);
 		return true;
 
-	}else{
-		pipe.write('process', {
-			handler: 'online'
-		});
-		return false;  //没有找到任何匹配
+	}else{  //没有找到任何匹配
+		pipe.write('process', { handler: 'online' });
+		return false;
 	}
 
+	/*
+	 * 最终传递给handler的vector结构
+	 *
+	 * {
+	 *  	uri: ,
+	 *  	path: ,
+	 *  	handler: 'handler类型的名字',
+	 *  	argument: '传递给handler的参数',
+	 *  	pipe: '输出管道'
+	 * }
+	 */
 	function contentHandler(vector){
-		//解析handler那段字符串
-		vector.handler = parseHandler(vector.handler);
 		vector.pipe = pipe;
 
-		//console.log('-~~~- : processing ... ', vector.handler.method);
 		//分发给对应的模块处理
-		var m = vector.handler.method;
+		var h = vector.handler;
+		console.log(vector);
+		var m = h[0];
+		vector.handler = m;
+		vector.argument = h[1];
 		if(m in methods){
 			methods[m].serve(req, res, vector);
 
 			//告诉大家已经选择了处理方式
-			pipe.write('process', {
-				handler: m
-			});
+			pipe.write('process', { handler: m });
 		}else{
 			//没有这个模块.. 可能是配置文件写错了
 			console.log('没有这个类型的handler: ', m);
@@ -121,32 +127,10 @@ exports.check = function(req, res, pipe){
 			res.end();
 
 			//向管道补充一条response更新
-			pipe.write('error', {
-				handler: 'error'
-			});
+			pipe.write('error', { handler: 'error' });
 		}
 	}
 };
-
-//从设置的handler字符串中取出method(第一个冒号之前的那个单词)
-function parseHandler(handler){
-	var method = handler.substr(0, handler.indexOf(':'));
-	method = {
-		'local': 'local',
-		'http': 'online',
-		'remote': 'remote',
-		'fastcgi': 'fastcgi'
-	}[method];
-
-	//冒号之后的部分
-	var direction = handler.substr( handler.indexOf(':') + 1 );
-
-	return {
-		method: method,
-		handler: handler,  //配置文件里写的那段原始字符串
-		asset: direction  //内容的地址
-	};
-}
 
 //实现nginx类似的rewrite
 function rewrite(uri, rule){

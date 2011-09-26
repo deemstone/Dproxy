@@ -4,7 +4,7 @@ var path = require('path'),
 exports.serve = function(req, res, vector){
 	var pipe = vector.pipe;  //输出的管道
 
-	var local = vector.handler.asset;
+	var local = vector.argument;
 	if(local[ local.length-1 ] == '/'){  //目录
 		var filepath = vector.path || '';  //handler的路径 + 请求过来url后面一段路径
 		filepath = local + filepath;

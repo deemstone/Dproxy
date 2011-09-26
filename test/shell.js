@@ -1,7 +1,33 @@
 /*
  * 做个shell应用
  */
-var roll = require('./roll.js');
+
+//这个设置保证由我自己控制Ctrl-C的行为,屏蔽了系统默认行为
+var tty = require('tty');
+tty.setRawMode(true);
+
+/*
+ * 滚动信息
+ */
+var roll = {};
+roll._on = false; //是否滚动中
+roll.info = function(){};
+
+roll.on = function(){
+	roll.info = function(message){
+		console.log(message);
+	};
+	roll._on = true;
+};
+
+roll.off = function(){
+  console.log('回到命令模式!');
+	roll.info = function(){};
+	roll._on = false;
+};
+
+
+
 
 var readline = require('readline'),
   rl = readline.createInterface(process.stdin, process.stdout),
@@ -10,29 +36,45 @@ var readline = require('readline'),
 rl.on('line', function(line) {
   switch(line.trim()) {
     case 'on':
-	  rl.setPrompt('', 0);
       roll.on();
       break;
+	case 'off':
+	  roll.off();
+	  break;
 
     default:
       console.log('Say what? I might have heard `' + line.trim() + '`');
-      break;
   }
   rl.setPrompt(prefix, prefix.length);
   rl.prompt();
-}).on('close', function() {
-  roll.off();
-  console.log('回到命令模式!');
-  rl.setPrompt(prefix, prefix.length);
-  rl.prompt();
-  return false;
-  //process.exit(0);
 });
+
+process.stdin.on('keypress', function(char, key) {
+  if (key && key.ctrl && key.name == 'c') {
+    if(roll._on){
+		roll.off();
+		rl.close();
+		startAnother();
+	}else{
+		process.exit(0);
+	}
+    return false;
+  }
+});
+
 console.log(prefix + '现在是off状态,试试on.');
 rl.setPrompt(prefix, prefix.length);
 rl.prompt();
 
 setInterval(function(){
 	roll.info('lala');
-	rl.prompt();
+	//rl.prompt();
 }, 1000)
+
+
+function startAnother(){
+  rl = readline.createInterface(process.stdin, process.stdout),
+  prefix = 'shell2> ';
+  rl.setPrompt(prefix, prefix.length);
+  rl.prompt();
+}
