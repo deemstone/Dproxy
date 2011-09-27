@@ -20,8 +20,21 @@ exports.output = function(fun){
 	return true;
 };
 
+//roll输出的开关
+var _rolling = false;
+exports.turnOn = function(){
+	_rolling = true;
+};
+exports.turnOff = function(){
+	_rolling = false;
+};
+exports.isRolling = function(){
+	return _rolling;
+};
+
 //用来向roll写入一条标准格式信息
-exports.write = function(message){
+var write = exports.write = function(message){
+	if( !_rolling ) return;
 	output(message);
 };
 
@@ -46,7 +59,7 @@ exports.add = function(task){
 				param: this.unid
 			};
 			if(appendix) m.appendix = appendix;
-			output(m);
+			write(m);
 		}
 	};
 	if(task) task(pipe);
