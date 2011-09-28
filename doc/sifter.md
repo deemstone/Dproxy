@@ -50,3 +50,8 @@ alisa domain1 domain2
 
 第一步 : 拿到url resolve 查看是否匹配某个vector
 第二步 : 调用相应的method 取得资源返回
+
+配置文件:
+--------
+
+写配置文件的时候 exact一定要写全路径,比如'www.baidu.com'实际请求的url是'http://www.baidu.com/'

@@ -22,7 +22,7 @@ exact = {
 	//'/a20993/jspro/base-old.js': 'http://s.xnimg.cn/a20993/jspro/base.js',
 	//'/a20993/jspro/xn.app.addFriend.js': 'remote:10.2.16.161'
 };
-module.exports.exact = exact;
+module.exports.exact = {}; //exact;
 
 //域范围内的路由列表
 var sections = {
@@ -38,7 +38,7 @@ var sections = {
 		//domain: 'remote:10.3.18.206'
 	}
 };
-module.exports.sections = sections;
+module.exports.sections = {}; //sections;
 
 //我们支持分组功能!!哈哈
 //这个分组列表这样实现(合并和单独关闭):
@@ -46,17 +46,18 @@ module.exports.sections = sections;
 //通过'引用计数'的类似原理,只要有相同的规则配置,就把计数+1
 //禁用一组配置的时候,相同配置计数-1,如果计数变0,在路由表中删除这个规则.
 //主要有两类规则: location & 特殊属性(rewrite)
-var groups = {
-	webpager: [
-		{ scope: 'xnimg.cn', location: '/jspro/xn.app.webpager.js', handler: ['remote', '10.2.16.123'] },  //普通location
-		{ scope: 'xnimg.cn', location: '/jspro/pager-channel6.js', handler: ['remote', '10.2.16.123'] },
-		{ scope: '*', location: 'http://wpi.renren.com/wtalk/ime.htm?v=5', handler: ['local', '/Users/Lijicheng/htdocs/ime.htm'] } //exact全路径匹配
-	],
-	xnimg: [
-		{ scope: 'xnimg.cn', setting:'domain', handler: ['remote', '10.2.74.90'] }, //域名默认handler
-		{ scope: 'xnimg.cn', setting:'rewrite', handler: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ] }  //rewrite
-	]
-};
+var groups = {};
+//var groups = {
+//	webpager: [
+//		{ scope: 'xnimg.cn', location: '/jspro/xn.app.webpager.js', handler: ['remote', '10.2.16.123'] },  //普通location
+//		{ scope: 'xnimg.cn', location: '/jspro/pager-channel6.js', handler: ['remote', '10.2.16.123'] },
+//		{ scope: '*', location: 'http://wpi.renren.com/wtalk/ime.htm?v=5', handler: ['local', '/Users/Lijicheng/htdocs/ime.htm'] } //exact全路径匹配
+//	],
+//	xnimg: [
+//		{ scope: 'xnimg.cn', setting:'domain', handler: ['remote', '10.2.74.90'] }, //域名默认handler
+//		{ scope: 'xnimg.cn', setting:'rewrite', handler: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ] }  //rewrite
+//	]
+//};
 //在分组的列表array上添加自定义属性isEnabled来标示启用状态
 
 exports.groupContent = function(group){
@@ -295,3 +296,96 @@ function findRule(g, rule){
 	}
 	return x;
 }
+
+var fs = require('fs');
+var path = require('path');
+//保存一个分组
+var dir_base = __dirname;  //程序根目录
+var dir_conf = path.join(dir_base, '/conf');
+var dir_rule = path.join(dir_conf, '/rule');
+
+//保存一个分组的规则到相应的文件
+function saveGroup(group){
+	var fpath = path.join(dir_rule, group +'.rule');
+	//覆盖写入
+	var rules = groups[group];
+	rules = JSON.stringify(rules);
+	fs.writeFileSync( fpath, rules, 'utf8');
+}
+
+//只负责加载指定的配置到groups中
+//完全同步的函数
+//@param filename{str} 带扩展名的文件名字符串
+function loadGroup(filename){
+	var fpath = path.join( dir_rule , filename);
+	var content = fs.readFileSync(fpath, 'utf8');
+	var ruleList = null;
+	try{
+		ruleList = JSON.parse(content);
+	}catch(e){
+		console.error('配置文件JSON解析出错: ', content);
+		return -1;
+	}
+	
+	var group = path.basename(filename, '.rule');
+	if(ruleList){
+		groups[group] = ruleList;
+	}
+}
+//把指定分组保存到磁盘
+exports.save = function(group){
+	if(!group || group == '*'){  //保存所有分组
+		for(var i in groups){
+			saveGroup(i);
+		}
+		return;
+	}
+	if( !(group in groups)) return;
+	saveGroup(group);
+};
+
+//重新加载一个分组文件的规则列表
+var reload = exports.reload = function(filename){
+	var group = path.basename(filename, '.rule');
+	//停用分组
+	var e = groups[group].isEnabled;
+	exports.disable(group);
+	//加载
+	loadGroup( group +'.rule' );
+	//重新启用分组
+	if(e) exports.enable(group);
+};
+
+(function(){
+	var rs = fs.readdirSync(dir_rule);
+	rs.forEach(function(r,i){
+		loadGroup(r);
+		var fpath = path.join(dir_rule, r);
+		//监视这个文件
+		fs.watchFile(fpath, function(curr, prev){
+			//console.info(curr, prev);
+			if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
+			//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
+			reload(r);
+		});
+	});
+
+	//读取配置信息,启用相应的分组
+	var file_conf = path.join(dir_conf, '/dproxy.conf');
+	var conf = fs.readFileSync( file_conf , 'utf8');
+	conf = JSON.parse(conf);
+	conf.enabledGroups.forEach(function(v,i){
+		exports.enable(v);
+	});
+
+	//程序退出的时候保存groups的启用状态
+	process.on('exit', function(){
+		exports.save();
+		var usedGroups = [];
+		for(var i in groups){
+			if(groups[i].isEnabled) usedGroups.push(i);
+		}
+		conf.enabledGroups = usedGroups;
+		fs.writeFileSync(file_conf, JSON.stringify(conf), 'utf8');
+	});
+})();
