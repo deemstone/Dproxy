@@ -3,20 +3,20 @@
  * 代理程序直接读取列表/控制程序操作列表
  */
 var staticServer = {
-	rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ],
+	rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ,1],
 	location: {
 		//'/webpager/': 'remote:10.2.16.123'//,
-		'/jspro/xn.app.webpager.js': ['remote', '10.2.16.123'],
-		'/jspro/pager-channel6.js': ['remote', '10.2.16.123']
+		'/jspro/xn.app.webpager.js': ['remote', '10.2.16.123' ,1],
+		'/jspro/pager-channel6.js': ['remote', '10.2.16.123' ,1]
 		//'/apps/alumna/': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/',
 		//'~ /apps/alumna/(.*)\.js': 'local:/Users/Lijicheng/htdocs/xn.static/apps/alumna/$1.js'  //还没有实现
 	},
-	domain: ['remote','10.2.74.90']
+	domain: ['remote','10.2.74.90' ,1]
 };
 
 //全局通用的完全匹配
 exact = {
-	'http://wpi.renren.com/wtalk/ime.htm?v=5': ['local', '/Users/Lijicheng/htdocs/ime.htm']
+	'http://wpi.renren.com/wtalk/ime.htm?v=5': ['local', '/Users/Lijicheng/htdocs/ime.htm' ,1]
 	//'/a20933/n/core/base-all.js': 'local:/Users/Lijicheng/htdocs/xn.static/n/core/base-all.js',
 	//'/a20933/jspro/xn.app.addFriend.js': 'local:/Users/Lijicheng/htdocs/xn.static/jspro/xn.app.addFriend.js',
 	//'/a20993/jspro/base-old.js': 'http://s.xnimg.cn/a20993/jspro/base.js',
@@ -42,7 +42,7 @@ module.exports.sections = sections;
 
 //我们支持分组功能!!哈哈
 //这个分组列表这样实现(合并和单独关闭):
-//分组下存储的信息每条只对应一个记录(location/domain/rewrite/excat)
+//分组下存储的信息每条只对应一个记录(location/domain/rewrite/exact)
 //通过'引用计数'的类似原理,只要有相同的规则配置,就把计数+1
 //禁用一组配置的时候,相同配置计数-1,如果计数变0,在路由表中删除这个规则.
 //主要有两类规则: location & 特殊属性(rewrite)
@@ -50,21 +50,57 @@ var groups = {
 	webpager: [
 		{ scope: 'xnimg.cn', location: '/jspro/xn.app.webpager.js', handler: ['remote', '10.2.16.123'] },  //普通location
 		{ scope: 'xnimg.cn', location: '/jspro/pager-channel6.js', handler: ['remote', '10.2.16.123'] },
-		{ scope: '*', location: 'http://wpi.renren.com/wtalk/ime.htm?v=5', handler: ['local', '/Users/Lijicheng/htdocs/ime.htm'] } //excat全路径匹配
+		{ scope: '*', location: 'http://wpi.renren.com/wtalk/ime.htm?v=5', handler: ['local', '/Users/Lijicheng/htdocs/ime.htm'] } //exact全路径匹配
 	],
 	xnimg: [
-		{ scope: 'xnimg.cn', location: '*', handler: ['remote', '10.2.74.90'] }, //域名默认handler
-		{ scope: 'xnimg.cn', rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ] }  //rewrite
+		{ scope: 'xnimg.cn', setting:'domain', handler: ['remote', '10.2.74.90'] }, //域名默认handler
+		{ scope: 'xnimg.cn', setting:'rewrite', handler: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ] }  //rewrite
 	]
 };
 //在分组的列表array上添加自定义属性isEnabled来标示启用状态
 
+exports.groupContent = function(group){
+	if( !(group in groups)){
+		return false;
+	}
+	var g = groups[group];
+	//转换成好理解的结构,exact,sections
+	var router = {
+		exact: {},
+		sections: {}
+	};
+	g.forEach(function(r,i){
+		var a = splitRule(r, router);
+		a.map[a.key] = a.array;
+	});
+	return router;
+};
+
+exports.listGroups = function(){
+	var list = [];
+	for(var group in groups){
+		list.push(group);
+	}
+	return list;
+};
+
 //启用一个分组的规则
 exports.enable = function(group){
+	//*是个暗号,启用所有分组
+	if(group == '*'){
+		for(i in groups){
+			arguments.callee(i);
+		} 
+		return;
+	}
+
 	if( !(group in groups) ){
 		console.log('<ERROR>: No group Named '+ group);
 		return;
 	}
+	//避免重复启用
+	if(groups[group].isEnabled) return;
+
 	var conflict = [];
 	//遍历这个分组所有的规则,添加到路由表中
 	groups[group].forEach(function(v,i){
@@ -85,6 +121,18 @@ exports.enable = function(group){
 
 //停用一个分组的规则
 exports.disable = function(group){
+	//*是个暗号,停用所有分组
+	if(group == '*'){
+		exports.exact = {};
+		exports.sections = {};
+		for(i in groups){
+			groups[i].isEnabled = false;
+		} 
+		return;
+	}
+	//避免重复操作
+	if(!groups[group].isEnabled) return;
+
 	if( !(group in groups) ){
 		console.log('<ERROR>: No group Named '+ group);
 		return;
@@ -104,9 +152,10 @@ exports.disable = function(group){
 //@param map{object} 把键值对插入这个map
 //@param key{string} 
 //@param value{array} 只能用0和1两个格子,第三个格子放置引用计数
-function enableRule(rule){
+//@param target{obj} {exact:{}, sections:{}}可以不是全局的那个exact和sections  暂时不用
+function enableRule(rule, target){
 	var code = 0; //0:只有这一条 1:计数+1 -1:冲突
-	var a = splitRule(rule);
+	var a = splitRule(rule, target);
 	var map = a.map,
 		key = a.key,
 		array = a.array;
@@ -123,7 +172,7 @@ function enableRule(rule){
 		}
 	}else{  //没有这个key,直接set进去
 		map[key] = array.slice(0);
-		map[key][2] = 0;
+		map[key][2] = 1;
 	}
 	return code;
 }
@@ -150,23 +199,23 @@ function disableRule(rule){
 //设计想法: 把rule的操作抽象成 key和array的比较
 //map是被操作的那个object, key是需要操作的那个键
 //array统一只用0和1两个格子
-function splitRule(rule){
+function splitRule(rule, obj){
+	var router = obj || exports;  //这个router可以是指定的一个空的{exact: {}, sections: {}}
 	if(rule.scope == '*'){  //全局的全路径匹配
-		map = excat;
+		map = router.exact;
 		key = rule.location;
 		array = rule.handler;
 	}else{  //特定域名的设置
 		var domain = rule.scope;
-		if( rule['rewrite'] ){ //首先判断是否特殊属性 [rewrite]
-			map = sections[domain];
-			key = 'rewrite';
-			array = rule.rewrite;
-		}else if(rule.location == '*'){ //domain的默认handler
-			map = sections[domain];
-			key = 'domain';
+		var section = router.sections[domain];
+		if( !section ){ section = router.sections[domain] = {}; }
+		if( rule.setting ){ //首先判断是否特殊属性 setting
+			map = section;
+			key = rule.setting;
 			array = rule.handler;
 		}else{  //普通location的handler
-			map = sections['location'];
+			map = section.location;
+			if(!map) map = section.location = {};
 			key = rule.location;
 			array = rule.handler;
 		}

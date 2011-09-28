@@ -5,6 +5,7 @@ var IPC = require('./IPCAgent.js');
 var sifter = require('./sifter.js');
 var online = require('./methods/online.js');  //这是整个过滤流程的最后一步
 var roll = require('./roll.js');
+var routeList = require('./routeList.js');
 
 //设置sifter可用的Handler
 var methods = {
@@ -65,6 +66,7 @@ if(socketfile){
 	});
 	
 }else{  //没有指定socket,命令行模式
+//TODO: 完整的命令shell方案
 	var readline = require('readline');
 	var tty = require('tty');
 	/*
@@ -91,17 +93,17 @@ if(socketfile){
 
 	var prefix = 'proxy> '; //命令行提示符
 	
-	rl = readline.createInterface(process.stdin, process.stdout, function(p){
-		//console.log(p);
-		return [ [p+'test', p+'lala', p+'dudu'], p];
-	});
+	rl = readline.createInterface(process.stdin, process.stdout); //function(p){ return [ [p+'test', p+'lala', p+'dudu'], p]; }
+	//TODO: 命令行Tab自动补全
+	
 	function prompt(){
 		rl.setPrompt(prefix, prefix.length);
 		rl.prompt();
 	}
 
 	rl.on('line', function(line) {
-		switch(line.trim()) {
+		var args = line.trim().split(' ');
+		switch(args[0]) {
 			case 'roll':
 				//暂停readline,打开滚动,监听按键
 				rl.pause();
@@ -113,16 +115,62 @@ if(socketfile){
 				//打印系统运行状况
 				console.info('Platform: ', process.platform);
 				//console.log('Has running: %s min', process.uptime()/60 );
-				console.log('Memory usage: ', process.memoryUsage() );
+				var usage = process.memoryUsage();
+				var info = ['Memory usage:'];
+				for(var i in usage){
+					info.push(i +': '+ usage[i]/1048576 +' MB');
+				}
+				console.info(info.join('\n'))
+
+				break;
+
+			case 'enable':
+				//启用一个分组
+				if(args[1]){
+					if(args[1] == 'all'){
+						routeList.enable('*')
+					}else{
+						routeList.enable(args[1]);
+					}
+				}else{
+					console.info('Need groupName or all');
+				}
+				
+				break;
+			case 'disable':
+				//禁用一个分组
+				if(args[1]){
+					if(args[1] == 'all'){
+						routeList.disable('*');
+					}else{
+						routeList.disable(args[1]);
+					}
+				}else{
+					console.info('Need groupName or all');
+				}
+
+				break;
+			case 'show':
+				//默认打印当前路由表
+				if(args.length < 2){
+					printRouteList();
+				}else{
+					printRouteList(args[1]);
+				}
+				//如果指定,打印指定分组
+				
+				break;
+			case 'groups':
+				var list = routeList.listGroups();
+				console.info( list.join('\n') );
 				break;
 
 			case 'exit':
 				console.info('Bye! ^_^');
 				process.exit(0);
 				break;
-
 			default:
-				console.log('No command named `' + line.trim() + '`');
+				console.info('No command named `' + line.trim() + '`');
 		}
 		prompt();
 	});
@@ -144,7 +192,47 @@ if(socketfile){
 		rl.prompt();
 	};
 
+	//开始cmdLoop
 	prompt();
+
+	//用于打印route的两个函数
+	function printRouteList(group){
+		if(group){
+			var g = routeList.groupContent(group);
+			if(!g){
+				console.log('No group named %s', group);
+				return;
+			}
+			var sections = g.sections;
+			var exact = g.exact;
+		}else{
+			var sections = routeList.sections;
+			var exact = routeList.exact;
+		}
+		//打印exact
+		for(var r in exact){
+			console.info( r +' -> '+ exact[r] );
+		}
+		//打印sections
+		for(var domain in sections){
+			s = sections[domain];
+			printSections(domain, s);
+		}
+	}
+
+	function printSections(domain, s){
+		console.info('======== '+ domain +' =========');
+		for(var type in s){
+			if( type == 'location' ) continue;
+			console.info('<%s> : %s',  type, s[type].slice(0,2).join('  '));
+		}
+
+		//打印location列表
+		var list = s.location;
+		for(var l in list){
+			console.info( l +' -> '+ list[l].slice(0,2).join(':') );
+		}
+	}
 }
 
 server.listen(7070);
