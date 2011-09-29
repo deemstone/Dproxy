@@ -78,9 +78,9 @@ exports.groupContent = function(group){
 };
 
 exports.listGroups = function(){
-	var list = [];
+	var list = {};
 	for(var group in groups){
-		list.push(group);
+		list[group] = groups[group].isEnabled;
 	}
 	return list;
 };
@@ -306,10 +306,11 @@ var dir_rule = path.join(dir_conf, '/rule');
 
 //保存一个分组的规则到相应的文件
 function saveGroup(group){
-	var fpath = path.join(dir_rule, group +'.rule');
-	//覆盖写入
 	var rules = groups[group];
-	rules = JSON.stringify(rules);
+	//if( !rules.isModified ) return 0; //没有修改过的话不需要保存
+	//覆盖写入
+	var fpath = path.join(dir_rule, group +'.rule');
+	rules = JSON.stringify(rules, '', '\t'); //这里\t格式话输出的JSON
 	fs.writeFileSync( fpath, rules, 'utf8');
 }
 
@@ -359,6 +360,7 @@ var reload = exports.reload = function(filename){
 (function(){
 	var rs = fs.readdirSync(dir_rule);
 	rs.forEach(function(r,i){
+		if( ! /\.rule$/.test(r) ) return;  //扩展名必须是rule的文件才是配置文件
 		loadGroup(r);
 		var fpath = path.join(dir_rule, r);
 		//监视这个文件

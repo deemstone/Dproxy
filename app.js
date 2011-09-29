@@ -162,7 +162,15 @@ if(socketfile){
 				break;
 			case 'groups':
 				var list = routeList.listGroups();
-				console.info( list.join('\n') );
+				var str = [];
+				for(var g in list){
+					if( list[g] ){
+						str.push('* '+ g);
+					}else{
+						str.push('  '+ g);
+					}
+				}
+				console.info( '\033[36m'+ str.join('\n') +'\033[39m' );
 				break;
 
 			case 'exit':

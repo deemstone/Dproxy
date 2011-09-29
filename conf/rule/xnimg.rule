@@ -1,1 +1,18 @@
-[{"scope":"xnimg.cn","setting":"domain","handler":["remote","10.2.74.90"]},{"scope":"xnimg.cn","setting":"rewrite","handler":["^/[ab]?([0-9]+)/(.*)","/$2"]}]
+[
+	{
+		"scope": "xnimg.cn",
+		"setting": "domain",
+		"handler": [
+			"remote",
+			"10.2.74.90"
+		]
+	},
+	{
+		"scope": "xnimg.cn",
+		"setting": "rewrite",
+		"handler": [
+			"^/[ab]?([0-9]+)/(.*)",
+			"/$2"
+		]
+	}
+]

@@ -110,7 +110,7 @@ exports.check = function(req, res, pipe){
 
 		//分发给对应的模块处理
 		var h = vector.handler;
-		console.log(vector);
+		//console.log(vector);
 		var m = h[0];
 		vector.handler = m;
 		vector.argument = h[1];
