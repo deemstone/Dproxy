@@ -35,7 +35,7 @@ var server = http.createServer(function(request, response) {
 	return true;
 });
 
-处理各种错误
+//处理各种错误
 process.on('uncaughtException', function(err)
 {
     console.log("\nError!!!!");
