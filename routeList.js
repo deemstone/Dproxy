@@ -364,12 +364,14 @@ var reload = exports.reload = function(filename){
 		loadGroup(r);
 		var fpath = path.join(dir_rule, r);
 		//监视这个文件
-		fs.watchFile(fpath, function(curr, prev){
-			//console.info(curr, prev);
-			if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
-			//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
-			reload(r);
-		});
+		if(process.platform.toLowerCase() != 'win32'){  //TODO: 目前windows版本的nodejs还不支持这个功能
+			fs.watchFile(fpath, function(curr, prev){
+				//console.info(curr, prev);
+				if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
+				//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
+				reload(r);
+			});
+		}
 	});
 
 	//读取配置信息,启用相应的分组
