@@ -1,6 +1,6 @@
 [
 	{
-		"scope": "xnimg.cn",
+		"scope": "s.xnimg.cn",
 		"location": "/jspro/xn.app.webpager.js",
 		"handler": [
 			"remote",
@@ -8,7 +8,7 @@
 		]
 	},
 	{
-		"scope": "xnimg.cn",
+		"scope": "s.xnimg.cn",
 		"location": "/jspro/pager-channel6.js",
 		"handler": [
 			"remote",
@@ -17,7 +17,7 @@
 	},
 	{
 		"scope": "*",
-		"location": "http://wpi.renren.com/wtalk/ime.htm?5",
+		"location": "http://wpi.renren.com/wtalk/ime.htm?v=5",
 		"handler": [
 			"local",
 			"/Users/Lijicheng/htdocs/ime.htm"

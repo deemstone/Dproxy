@@ -1,7 +1,9 @@
 /*
  * 管理路由列表
- * 代理程序直接读取列表/控制程序操作列表
+ * 负责列表的操作和url的匹配
  */
+
+//{{{ - 规则表数据结构 -
 var staticServer = {
 	rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ,1],
 	location: {
@@ -39,7 +41,9 @@ var sections = {
 	}
 };
 module.exports.sections = {}; //sections;
+//}}}
 
+//{{{ - 分组功能 -
 //我们支持分组功能!!哈哈
 //这个分组列表这样实现(合并和单独关闭):
 //分组下存储的信息每条只对应一个记录(location/domain/rewrite/exact)
@@ -147,6 +151,7 @@ exports.disable = function(group){
 	groups[group].isEnabled = false;  //标示这个分组已经停用
 	console.log('Disabled Group: '+ group);
 };
+//}}}
 
 //把一个规则插入指定的map中
 //判断是否有,值是否相同
@@ -357,6 +362,7 @@ var reload = exports.reload = function(filename){
 	if(e) exports.enable(group);
 };
 
+//初始化此模块时处理文件系统上的配置
 (function(){
 	var rs = fs.readdirSync(dir_rule);
 	rs.forEach(function(r,i){

@@ -1,6 +1,6 @@
 [
 	{
-		"scope": "xnimg.cn",
+		"scope": "s.xnimg.cn",
 		"setting": "domain",
 		"handler": [
 			"remote",
@@ -8,11 +8,27 @@
 		]
 	},
 	{
-		"scope": "xnimg.cn",
+		"scope": "s.xnimg.cn",
 		"setting": "rewrite",
 		"handler": [
 			"^/[ab]?([0-9]+)/(.*)",
 			"/$2"
+		]
+	},
+	{
+		"scope": "test.renren.com",
+		"setting": "domain",
+		"handler": [
+			"remote",
+			"10.2.16.123"
+		]
+	},
+	{
+		"scope": "test.cooer.net",
+		"setting": "domain",
+		"handler": [
+			"remote",
+			"10.2.16.123"
 		]
 	}
 ]
