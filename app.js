@@ -5,14 +5,13 @@ var IPC = require('./IPCAgent.js');
 var sifter = require('./sifter.js');
 var online = require('./methods/online.js');  //这是整个过滤流程的最后一步
 var roll = require('./roll.js');
-var routeList = require('./routeList.js');
+//var routeList = require('./routeList.js');
 
 //设置sifter可用的Handler
 var methods = {
 	local: require('./methods/local.js'),  //用本地文件相应请求
 	remote: require('./methods/remote.js')  //代理到其他测试服务器取文件
 };
-sifter.setMethods(methods);
 
 //启动服务
 var server = http.createServer(function(request, response) {
@@ -26,21 +25,35 @@ var server = http.createServer(function(request, response) {
 		httpVersion: request.httpVersion
 	});
 
-	//check if this request is listed in the sifter
-	if( sifter.check(request, response, pipe) ) return false;
+	//在sifter中检查
+	var handler = sifter.check(request.url);
+	if(handler){
+		//找到了匹配的handler
+		if(handler.method in methods){
+			var param = { pipe: pipe };
+			for (var property in handler) {
+				param[property] = handler[property];
+			}
 
-	//not shot the list , get it frome online
-	online.serve(request, response, pipe);
-
+			console.log('param : ', param);
+			methods[handler.method].serve(request, response, param);
+		}else{
+			throw new Error('no method named '+ handler.method);
+		}
+	}else{
+		//没有匹配到,直接online
+		//not shot the list , get it frome online
+		online.serve(request, response, pipe);
+	}
 	return true;
 });
 
 //处理各种错误
-process.on('uncaughtException', function(err)
-{
-    console.log("\nError!!!!");
-    console.log(err);
-});
+//process.on('uncaughtException', function(err)
+//{
+//    console.log("\nError!!!!");
+//    console.log(err);
+//});
 
 
 /**

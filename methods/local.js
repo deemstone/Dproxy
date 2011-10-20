@@ -4,13 +4,14 @@ var path = require('path'),
 exports.serve = function(req, res, vector){
 	var pipe = vector.pipe;  //输出的管道
 
-	var local = vector.argument;
-	if(local[ local.length-1 ] == '/'){  //目录
-		var filepath = vector.path || '';  //handler的路径 + 请求过来url后面一段路径
-		filepath = local + filepath;
-	}else{  //直接返回这个文件
-		var filepath = local;
-	}
+	var filepath = vector.file;
+	//var local = vector.argument;
+	//if(local[ local.length-1 ] == '/'){  //目录
+	//	var filepath = vector.path || '';  //handler的路径 + 请求过来url后面一段路径
+	//	filepath = local + filepath;
+	//}else{  //直接返回这个文件
+	//	var filepath = local;
+	//}
 
 	var headers = {
 		'Cache-Control': 'no-cache',
