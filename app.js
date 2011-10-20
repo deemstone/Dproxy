@@ -1,53 +1,11 @@
-var http = require('http');
-var sys  = require('sys');
-
+/*
+ * Dproxy入口程序
+ * 处理启动参数,用户界面
+ */
 var IPC = require('./IPCAgent.js');
 var sifter = require('./sifter.js');
-var online = require('./methods/online.js');  //这是整个过滤流程的最后一步
 var roll = require('./roll.js');
-//var routeList = require('./routeList.js');
-
-//设置sifter可用的Handler
-var methods = {
-	local: require('./methods/local.js'),  //用本地文件相应请求
-	remote: require('./methods/remote.js')  //代理到其他测试服务器取文件
-};
-
-//启动服务
-var server = http.createServer(function(request, response) {
-	//console.log('['+ request.connection.remoteAddress + '] --> : new Request - ', request.url);
-	var pipe = roll.add();
-	pipe.cmds.push('transport');
-	pipe.write('new', {
-		method: request.method,
-		url: request.url,
-		headers: request.headers,
-		httpVersion: request.httpVersion
-	});
-
-	//在sifter中检查
-	var handler = sifter.check(request.url);
-	if(handler){
-		//找到了匹配的handler
-		if(handler.method in methods){
-			var param = { pipe: pipe };
-			for (var property in handler) {
-				param[property] = handler[property];
-			}
-
-			console.log('param : ', param);
-			methods[handler.method].serve(request, response, param);
-		}else{
-			throw new Error('no method named '+ handler.method);
-		}
-	}else{
-		//没有匹配到,直接online
-		//not shot the list , get it frome online
-		online.serve(request, response, pipe);
-	}
-	return true;
-});
-
+var server = require('./proxy.js').server;
 //处理各种错误
 //process.on('uncaughtException', function(err)
 //{
@@ -141,9 +99,9 @@ if(socketfile){
 				//启用一个分组
 				if(args[1]){
 					if(args[1] == 'all'){
-						routeList.enable('*')
+						sifter.enableGroup('*')
 					}else{
-						routeList.enable(args[1]);
+						sifter.enableGroup(args[1]);
 					}
 				}else{
 					console.info('Need groupName or all');
@@ -154,9 +112,9 @@ if(socketfile){
 				//禁用一个分组
 				if(args[1]){
 					if(args[1] == 'all'){
-						routeList.disable('*');
+						sifter.disable('*');
 					}else{
-						routeList.disable(args[1]);
+						sifter.disable(args[1]);
 					}
 				}else{
 					console.info('Need groupName or all');
@@ -174,7 +132,7 @@ if(socketfile){
 				
 				break;
 			case 'groups':
-				var list = routeList.listGroups();
+				var list = sifter.listGroups();
 				var str = [];
 				for(var g in list){
 					if( list[g] ){
@@ -219,7 +177,7 @@ if(socketfile){
 	//用于打印route的两个函数
 	function printRouteList(group){
 		if(group){
-			var g = routeList.groupContent(group);
+			var g = sifter.groupContent(group);
 			if(!g){
 				console.log('No group named %s', group);
 				return;
@@ -227,8 +185,8 @@ if(socketfile){
 			var sections = g.sections;
 			var exact = g.exact;
 		}else{
-			var sections = routeList.sections;
-			var exact = routeList.exact;
+			var sections = sifter.sections;
+			var exact = sifter.exact;
 		}
 		//打印exact
 		for(var r in exact){
