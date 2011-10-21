@@ -4,8 +4,8 @@
  */
 var IPC = require('./IPCAgent.js');
 var sifter = require('./sifter.js');
-var roll = require('./roll.js');
-var server = require('./proxy.js').server;
+var proxy = require('./proxy.js');
+
 //处理各种错误
 //process.on('uncaughtException', function(err)
 //{
@@ -24,7 +24,7 @@ var socketfile = process.argv[2];  //从命令行参数里取第三个参数,是
 if(socketfile){
 	IPC.createConnection(socketfile);
 	//程序的输出message直接写给IPC
-	roll.output(function(m){
+	proxy.output(function(m){
 		IPC.write(m);
 	});
 	IPC.on('message', function(m){
@@ -44,7 +44,7 @@ if(socketfile){
 	 * 默认的输出管道
 	 * 直接格式化打印到命令行
 	 */
-	roll.output(function(m){
+	proxy.output(function(m){
 		if( m.cmds.shift() == 'transport' ){  //这是一条代理传输的信息
 			switch( m.cmds.shift() ){
 				case 'new':
@@ -214,5 +214,5 @@ if(socketfile){
 	}
 }
 
-server.listen(7070);
+proxy.server.listen(7070);
 console.log('--> : Proxy Server listening port 7070 !!');

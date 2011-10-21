@@ -1,5 +1,10 @@
 /*
  * 接收滚动信息,输出到指定管道
+ * 输出数据为标准的cmd格式
+ * 主要提供一个唯一的消息编号
+ * 编号到达最大值自动归0重新开始
+ * 滚动的关闭由消息处理来做
+ * 将来可能做滚动内容的暂存
  */
 
 var unid = 0;
@@ -18,24 +23,6 @@ exports.output = function(fun){
 	if(!fun) return false;
 	output = fun;
 	return true;
-};
-
-//roll输出的开关
-var _rolling = false;
-exports.turnOn = function(){
-	_rolling = true;
-};
-exports.turnOff = function(){
-	_rolling = false;
-};
-exports.isRolling = function(){
-	return _rolling;
-};
-
-//用来向roll写入一条标准格式信息
-var write = exports.write = function(message){
-	if( !_rolling ) return;
-	output(message);
 };
 
 //新建一个条目
