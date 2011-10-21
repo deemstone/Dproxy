@@ -4,6 +4,7 @@ var sys  = require('sys');
 var sifter = require('./sifter.js');
 var online = require('./methods/online.js');  //这是整个过滤流程的最后一步
 var roll = require('./roll.js');  //用这个模块处理所有网络请求的信息滚动
+var service = require('./service.js');  //程序的service layer
 
 //设置sifter可用的Handler
 var methods = {
@@ -54,27 +55,19 @@ exports.server = http.createServer(function(request, response) {
 });
 
 //滚动信息的输出
-roll.output(function(m){
+roll.output(function(msg){
 	//TODO: 输出给各UI的适配器
-	write(m);
+	service.write(msg);
 });
-
-//输出定向
-var _output = function(m){
-	console.info('<proxy-output>', m); //默认直接打印到console
-};
+//设置输出定向
 exports.output = function(fn){
-	_output = fn;
-};
-//向外部写出一条消息
-function write(msg){
-	_output(msg);
-}
-
-
-//
-exports.command = function(cmd, fun){
-
+	service.output(fn);
 };
 
 //接受外来的消息
+service.command('/sifter/rule/add', function(cmd, done){
+	//cmd是标准命令格式
+
+	//执行过后用done返回结果
+	done(m);
+});
