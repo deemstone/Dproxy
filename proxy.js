@@ -63,6 +63,10 @@ roll.output(function(msg){
 exports.output = function(fn){
 	service.output(fn);
 };
+//调用service的request
+exports.request = function(){
+	service.request.apply(service, arguments);
+};
 
 //接受外来的消息
 service.command('/sifter/rule/add', function(cmd, done){
