@@ -46,7 +46,7 @@ exports.add = function(task){
 				param: this.unid
 			};
 			if(appendix) m.appendix = appendix;
-			write(m);
+			output(m);
 		}
 	};
 	if(task) task(pipe);

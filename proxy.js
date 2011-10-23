@@ -68,10 +68,22 @@ exports.request = function(){
 	service.request.apply(service, arguments);
 };
 
-//接受外来的消息
+/* ----------- 接口定义 ------------- */
+
+//列出所有分组
+service.command('/sifter/group/list', function(cmd, done){
+	var rs = {
+		cmds: ['sifter', 'group', 'list'],
+		appendix: sifter.listGroups()
+	};
+	
+	done(rs);
+});
+//添加一条规则
 service.command('/sifter/rule/add', function(cmd, done){
 	//cmd是标准命令格式
 
 	//执行过后用done返回结果
 	done(m);
 });
+
