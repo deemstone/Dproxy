@@ -6,13 +6,6 @@
  */
 
 exports.parse = function(cStr){
-	//解析出来的数据放在这里
-	var obj = {
-		enabled: false,
-		handlers: {},
-		settings: {},
-		rules: {}
-	};
 
 	//建立一些常用的正则对象
 	var RegExp_COMMENT = /(^|\s+)#.*/; //匹配所有注释(配置文件中的某一行) 可以用这个正则去掉所注释
@@ -83,6 +76,134 @@ exports.parse = function(cStr){
 		return table;
 	}
 
-
-	return parseBlock();
+	var table = parseBlock();
+	return buildGroup(table);
 };
+
+//从原始的列表表格信息中建立分组的数据
+function buildGroup(table){
+	//解析出来的数据放在这里
+	var group = {
+		enabled: false,
+		handlers: {},
+		settings: {},
+		rules: []
+	};
+	
+	//obj.handlers = build_handlers(table.handler);
+	if( table['handler'] ){
+		var handlers = {};  //从table里建立出所有的分组局域handler
+		table['handler'].forEach(function(h){
+			h = buildHandler(h);
+			handlers[ h.name ] = h.info;
+		});
+		group.handlers = handlers;
+	}
+
+	var setting = {'rewrite': '', 'default': ''};
+	var oneline, _handler, _domain;  //上一条规则的handler,如果本条没有,沿用上一条的 当前处理的某个块的域
+
+	for(var scope in table){
+		if(scope == 'oneline'){  //最后处理这个特殊的list
+			oneline = table[scope];
+			continue;
+		}
+		if(scope == 'handler') continue;  //这里不处理handler块
+		
+		domain = scope;
+		table[scope].forEach(function(l){
+			//提取出第一个字符串,判断是否是某项setting
+			l = l.split(/\s+/);
+			var name = l.shift();
+			if(name in setting){
+				//TODO: 域名setting的实现方案还没定,暂时不理会
+				//
+			}else{ //如果是普通的一条规则,添加到表中
+				_handler = l[0] || _handler;
+				var rule = {
+					domain: scope,
+					patten: name,
+					handler: _handler
+				};
+				group.rules.push( rule );
+			}
+		});
+
+		if(table[scope]['location']){  //正了八经的规则列表
+			_handler = null;
+			table[scope]['location'].forEach(function(l){
+				l = l.split(/\s+/);
+				_handler = l[1] || _handler;
+				var rule = {
+					domain: scope,
+					patten: l[0],
+					handler: _handler
+				};
+				group.rules.push( rule );
+			});
+		}
+
+	}
+
+	if(oneline){
+		_handler = null;
+		oneline.forEach(function(l){
+			l = l.split(/\s+/);
+			//解析url 分成host和uri两部分
+			_handler = l[1] || _handler;
+			l = l[0].match(/(http:\/\/)?([^\/]*)(.*)$/);
+			var url = {
+				host: l[2],
+				uri: l[3]
+			};
+
+			//TODO: 这里还应该支持绑host的操作  http://s.xnimg.cn/* handler
+
+			//生成rule对象
+			var rule = {
+				domain: url.host,
+				patten: url.uri || '/',  //如果只有域名,默认patten是根目录
+				handler: _handler
+			};
+
+			//放到ruleList中
+			group.rules.unshift(rule);
+		});
+	}
+
+	return group;
+}
+
+//handler字串解析用到的正则表达式
+var RegExp_HANDLER = /^([^\s]+)\s+([^\s]+)\s+\[(.*)\]\s*$/ ;  //没有空格(之前的处理都给去掉了) + 字符串 + 空格 + 字符串 + [:;格式的字符串]
+//从格式中字符串提取handler信息
+//参数: h是配置文件中描述handler的字符串
+//返回: {name: '', info: {method: '', ...} }
+function buildHandler(h){
+	var r = h.match( RegExp_HANDLER );
+	//console.log('<正则匹配结果>:', r);
+	if(!r) return null;
+
+	var param = parseCobj(r[3]);  //把[里面]那段字符串翻译成对象数据结构
+	param['method'] = r[2];
+	
+	var handler = {
+		name: r[1],
+		info: param
+	};
+	
+	return handler;
+}
+
+function parseCobj(cstr){
+	//去掉任何空格
+	cstr = cstr.replace(/\s+/g, '');
+	var attrs = cstr.split(/[:;]/);  //全都隔开之后,数组中两两一对,碰到名字是空就停止(那是最后一个;号split产生的)
+
+	var obj = {};  //内容都放到这里
+	while(attrs[0]){  //
+		obj[ attrs.shift() ] = attrs.shift();  //已经确认,js中赋值操作会先执行等号左边的那个shift()
+	}
+
+	return obj;
+}

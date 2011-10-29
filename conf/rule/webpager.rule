@@ -5,9 +5,9 @@
 handler
 {
 	#惠华的静态
-	huihua-static  remote {}
+	huihua-static  remote []
 	#文韬的静态
-	wentao-static  remote {}
+	wentao-static  remote []
 	#继成的静态
 	jicheng-static  remote [ ip: 10.2.16.123; ]
 }
@@ -37,6 +37,6 @@ s.xnimg.cn,a.xnimg.cn
 
 wpi.renren.com
 {
-	/wtalk/ime.htm?v=5  jicheng-static  #这个域名没有特殊设置,那就直接写url规则
+	/wtalk/ime.htm?v=5  huihua-static  #这个域名没有特殊设置,那就直接写url规则
 }
 
