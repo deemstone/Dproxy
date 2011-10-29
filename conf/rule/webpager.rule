@@ -1,34 +1,42 @@
-[
-	{
-		"scope": "s.xnimg.cn",
-		"location": "/jspro/xn.app.webpager.js",
-		"handler": [
-			"remote",
-			"10.2.16.123"
-		]
-	},
-	{
-		"scope": "s.xnimg.cn",
-		"location": "/jspro/pager-channel6.js",
-		"handler": [
-			"remote",
-			"10.2.16.123"
-		]
-	},
-	{
-		"scope": "*",
-		"location": "http://wpi.renren.com/wtalk/ime.htm?v=5",
-		"handler": [
-			"local",
-			"/Users/Lijicheng/htdocs/ime.htm"
-		]
-	},
-	{
-		"scope": "www.baidu.com",
-		"setting": "domain",
-		"handler": [
-			"remote",
-			"10.2.74.90"
-		]
+#Dproxy的规则配置文件
+#模仿nginx配置文件格式
+
+#这个组里局域handler
+handler
+{
+	#惠华的静态
+	huihua-static  remote {}
+	#文韬的静态
+	wentao-static  remote {}
+	#继成的静态
+	jicheng-static  remote [ ip: 10.2.16.123; ]
+}
+
+#临时添加一个规则,不用写复杂的结构
+oneline
+{
+	http://www.baidu.com  jicheng-static  #这条没指定uri 默认是/
+	http://wentao.xnimg.cn/* wentao-static  #这条只有个/* 相当于这个域下的default
+}
+
+
+
+s.xnimg.cn,a.xnimg.cn
+{
+	rewrite   ^/[ab]?([0-9]+)/(.*)   /$2  #重写url
+	default  jicheng-static  #这个域的默认handler,相当于绑host
+
+	#这个域名下的规则列表
+	location{
+		/jspro/xn.app.webpager.js   jicheng-static
+		/jspro/pager-channel6.js
+		/n/core/modules/webpager/webpager.css
+		/n/core/res/webpager/cssimg/webpager.css
 	}
-]
+}
+
+wpi.renren.com
+{
+	/wtalk/ime.htm?v=5  jicheng-static  #这个域名没有特殊设置,那就直接写url规则
+}
+

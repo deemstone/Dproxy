@@ -48,5 +48,5 @@ if(socketfile){
 	cli.init(proxy);
 }
 
-proxy.server.listen(7070);
+proxy.server.listen(7777);
 console.log('--> : Proxy Server listening port 7070 !!');
