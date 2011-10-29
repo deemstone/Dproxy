@@ -4,6 +4,10 @@
  */
 var proxy = require('./proxy.js');
 
+proxy.shutdown = function(){
+	process.exit(0);
+};
+
 //处理各种错误
 //process.on('uncaughtException', function(err)
 //{

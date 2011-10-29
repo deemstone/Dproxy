@@ -40,7 +40,7 @@ exports.parse = function(cStr){
 			line = null;
 			line = orig[i].replace(RegExp_COMMENT, '');  //删除注释
 
-			console.log('['+ i +']', line);
+			//console.log('['+ i +']', line);
 
 			if( line == '' ){  //空行 
 				i++;

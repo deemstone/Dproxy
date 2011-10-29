@@ -37,6 +37,7 @@ var enableGroup = exports.enableGroup = function(gname){
 	for(unid in rules){  //逐个添加到routeList中
 		addToRoutelist(unid);
 	}
+	ruleGroups[gname].enabled = true;
 	//TODO: domain的配置 rewrite
 };
 //停用一个分组
@@ -52,6 +53,7 @@ var disableGroup = exports.disableGroup = function(gname){
 	for(unid in rules){  //逐个添加到routeList中
 		delFromRoutelist(unid);
 	}
+	ruleGroups[gname].enabled = false;
 };
 //启用一条规则
 var enableRule = exports.enableRule = function(unid){
@@ -116,6 +118,16 @@ var listGroups = exports.listGroups = function(){
 	}
 	return list;
 };
+//返回分组的详细信息
+exports.getGroupContent = function(name){
+	//TODO: clone一份新的
+	return ruleGroups[name];
+};
+//返回routeList内容
+exports.getRouteList = function(){
+	//TODO: clone
+	return routeList;
+};
 
 
 /*  辅助函数 */
@@ -177,9 +189,9 @@ function delFromRoutelist(unid){
 	//逐个domain的处理
 	domain.forEach(function(d){
 		var rules = getDomainRules(d);
-		for(var i; i<rules.length; i++){
+		for(var i=0; i<rules.length; i++){
 			if(rules[i].unid == unid){
-				rules.splice(i, 1);  //逐个查找,找到了就删除这个元素
+				var s = rules.splice(i, 1);  //逐个查找,找到了就删除这个元素
 				return; //然后结束for循环
 			}
 		}
@@ -276,10 +288,10 @@ function loadGroupFile(filename){
 //重新加载一个分组文件的规则列表
 var reloadGroup = exports.reloadGroup = function(groupname){
 	//停用分组
-	var e = ruleGroups[groupname].isEnabled;
+	var e = ruleGroups[groupname].enabled;
 	disableGroup(groupname);
 	//加载
-	loadGroupFile( filename +'.rule' );
+	loadGroupFile( groupname +'.rule' );
 	//重新启用分组
 	if(e) enableGroup(groupname);
 };

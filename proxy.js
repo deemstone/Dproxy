@@ -79,6 +79,18 @@ service.command('/sifter/group/list', function(cmd, done){
 	
 	done(rs);
 });
+//启用一个分组
+service.command('/sifter/group/enable', function(cmd, done){
+	var groupname = cmd.param;
+	sifter.enableGroup( groupname );
+	done(cmd);
+});
+//停用一个分组
+service.command('/sifter/group/disable', function(cmd, done){
+	var groupname = cmd.param;
+	sifter.disableGroup( groupname );
+	done(cmd);
+});
 //添加一条规则
 service.command('/sifter/rule/add', function(cmd, done){
 	//cmd是标准命令格式
@@ -86,4 +98,15 @@ service.command('/sifter/rule/add', function(cmd, done){
 	//执行过后用done返回结果
 	done(m);
 });
-
+//显示一个分组的详细内容
+service.command('/sifter/group/show', function(cmd, done){
+	var groupname = cmd.param;
+	var table = sifter.getGroupContent(groupname);
+	cmd.appendix = table;
+	done(cmd);
+});
+//取得routeList内容
+service.command('/sifter/rule/list', function(cmd, done){
+	cmd.appendix = sifter.getRouteList();
+	done(cmd);
+});

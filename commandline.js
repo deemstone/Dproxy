@@ -65,6 +65,11 @@ shell.command('status', function(args, next){
 	shell.print( info.join('\n') );
 	next();
 });
+//结束程序
+shell.command('exit', function(args, next){
+	shell.print('Bye! ^_^');
+	proxy.shutdown();
+});
 //需要调用proxy接口返回信息的类型
 shell.command('groups', function(args, next){
 	proxy.request('/sifter/group/list', function(rs){
@@ -79,6 +84,59 @@ shell.command('groups', function(args, next){
 		shell.print( str.join('\n') );
 		next();
 	});
+});
+//启用一个分组
+shell.command('up', function(args, next){
+	if(!args.length){ //必须指定分组名
+		shell.print( '必须指定分组名' );
+		next();
+		return;
+	}
+	proxy.request('/sifter/group/enable', args[0], function(rs, err){
+		next();
+	});
+});
+//停用一个分组
+shell.command('down', function(args, next){
+	if(!args.length){ //必须指定分组名
+		shell.print( '必须指定分组名' );
+		next();
+		return;
+	}
+	proxy.request('/sifter/group/disable', args[0], function(rs, err){
+		if(err) shell.print(err);
+		next();
+	});
+});
+//查看规则列表
+shell.command('show', function(args, next){
+	//处理参数args
+	if(!args.length){  //打印所有已经启用的规则
+		proxy.request('/sifter/rule/list', function(rs, err){
+			if(err){
+				shell.print(err);
+				next();
+				return;
+			}
+
+			var output = printRouteList(rs.appendix);
+			shell.print( output.join('\n') );
+			next();
+		});
+	}else{
+		proxy.request('/sifter/group/show', args[0], function(rs, err){
+			if(err){
+				shell.print(err);
+				next();
+				return;
+			}
+
+			var table = rs.appendix;
+			var output = printRouteList(table);
+			shell.print( output.join('\n') );
+			next();
+		});
+	}
 });
 //开启滚动
 shell.command('roll', function(args){
@@ -117,108 +175,81 @@ shell.instantMod(function(char, key){
 
 /* ------------------- End ----------------- */
 //用于打印route的两个函数
-function printRouteList(group){
-	if(group){
-		var g = sifter.groupContent(group);
-		if(!g){
-			console.log('No group named %s', group);
-			return;
+function printGroupContent(table){
+	var rules = table.rules;
+	var handlers = table.handlers;
+
+	var scopes = {};
+	var r, list;
+	for(var unid in rules){  //遍历rules列表,转换成以域名分类的键值表
+		r = rules[unid];
+		list = getScope( r.domain );
+		list.push([r.patten, r.handler]);
+	}
+
+	//没有就新建
+	function getScope(domain){
+		if( !(domain in scopes) ){
+			scopes[domain] = [];
 		}
-		var sections = g.sections;
-		var exact = g.exact;
-	}else{
-		var sections = sifter.sections;
-		var exact = sifter.exact;
+		return scopes[domain];
 	}
-	//打印exact
-	for(var r in exact){
-		console.info( r +' -> '+ exact[r] );
+	
+	//打印
+	var output = [];
+	var s, l; //循环中临时存放点
+	
+	output.push('Handler列表: =================');
+	for(var h in handlers){
+		output.push(' '+ h +': '+ JSON.stringify( handlers[h] ) );
 	}
-	//打印sections
-	for(var domain in sections){
-		s = sections[domain];
-		printSections(domain, s);
-	}
-}
+	output.push('');
 
-function printSections(domain, s){
-	console.info('======== '+ domain +' =========');
-	for(var type in s){
-		if( type == 'location' ) continue;
-		console.info('<%s> : %s',  type, s[type].slice(0,2).join('  '));
+	output.push('Rule列表: =================');
+	for(var domain in scopes){
+		output.push('<'+ domain +'>');
+		scopes[domain].forEach(function(r){
+			output.push(' '+ r[0] +'  --  '+ r[1]);
+		});
 	}
 
-	//打印location列表
-	var list = s.location;
-	for(var l in list){
-		console.info( l +' -> '+ list[l].slice(0,2).join(':') );
-	}
+	return output;
 }
-//rl.on('line', function(line) {
-//	var args = line.trim().split(' ');
-//	switch(args[0]) {
-//		case 'roll':
-//			//暂停readline,打开滚动,监听按键
-//			rl.pause();
-//			roll.turnOn();
-//			tty.setRawMode(true);
-//			return;
+
 //
-//		case 'status':
-//			//打印系统运行状况
-//			console.info('Platform: ', process.platform);
-//			//console.log('Has running: %s min', process.uptime()/60 );
-//			var usage = process.memoryUsage();
-//			var info = ['Memory usage:'];
-//			for(var i in usage){
-//				info.push(i +': '+ usage[i]/1048576 +' MB');
-//			}
-//			console.info(info.join('\n'))
-//
-//			break;
-//
-//		case 'enable':
-//			//启用一个分组
-//			if(args[1]){
-//				if(args[1] == 'all'){
-//					sifter.enableGroup('*')
-//				}else{
-//					sifter.enableGroup(args[1]);
-//				}
-//			}else{
-//				console.info('Need groupName or all');
-//			}
-//			
-//			break;
-//		case 'disable':
-//			//禁用一个分组
-//			if(args[1]){
-//				if(args[1] == 'all'){
-//					sifter.disable('*');
-//				}else{
-//					sifter.disable(args[1]);
-//				}
-//			}else{
-//				console.info('Need groupName or all');
-//			}
-//
-//			break;
-//		case 'show':
-//			//默认打印当前路由表
-//			if(args.length < 2){
-//				printRouteList();
-//			}else{
-//				printRouteList(args[1]);
-//			}
-//			//如果指定,打印指定分组
-//			
-//			break;
-//		case 'exit':
-//			console.info('Bye! ^_^');
-//			process.exit(0);
-//			break;
-//		default:
-//			console.info('No command named `' + line.trim() + '`');
-//	}
-//	prompt();
-//});
+function printRouteList(table){
+	var rules = {};
+	for(var domain in table){  //把分单个domain的列表转换成groupContent里面一样的rules  unid -> rule
+		table[domain].forEach(function(r){
+			rules[r.unid] = r;
+		});
+	}
+
+	var scopes = {};
+	var r, list;
+	for(var unid in rules){  //遍历rules列表,转换成以域名分类的键值表
+		r = rules[unid];
+		list = getScope( r.domain );
+		list.push(r);
+	}
+
+	//没有就新建
+	function getScope(domain){
+		if( !(domain in scopes) ){
+			scopes[domain] = [];
+		}
+		return scopes[domain];
+	}
+
+	var output = [];
+	var s, l; //循环中临时存放点
+	output.push('RouteList: =================');
+	for(var domain in scopes){
+		output.push('<'+ domain +'>');
+		scopes[domain].forEach(function(r){
+			output.push(' '+ r.patten +'  --  '+ r.groupname +'>'+ r.handler);
+		});
+	}
+
+	return output;
+}
