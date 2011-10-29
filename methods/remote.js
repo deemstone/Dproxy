@@ -5,7 +5,7 @@ var fs = require('fs');
 exports.serve = function(req, res, vector){
 	var pipe = vector.pipe;  //输出的管道
 
-	var targetIP = vector.targetIP;
+	var targetIP = vector.ip;
 	//构造请求head
 	//console.log(req.connection.remoteAddress + "--> : " + req.method + " " + req.url);
 	var proxy = http.createClient(80, targetIP);

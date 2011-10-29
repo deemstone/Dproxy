@@ -31,8 +31,8 @@ target['wpi.renren.com'] = [
 var finalTarget = {
 	enabled: false,
 	handlers: { 
-		'huihua-static': { method: 'remote' },
-		'wentao-static': { method: 'remote' },
+		'huihua-static': { ip: '10.2.74.86', method: 'remote' },
+		'wentao-static': { ip: '10.2.74.173', method: 'remote' },
 		'jicheng-static': { ip: '10.2.16.123', method: 'remote' } 
 	},
 	settings: {},

@@ -5,9 +5,9 @@
 handler
 {
 	#惠华的静态
-	huihua-static  remote []
+	huihua-static  remote [ ip: 10.2.74.86 ]
 	#文韬的静态
-	wentao-static  remote []
+	wentao-static  remote [ ip: 10.2.74.173 ]
 	#继成的静态
 	jicheng-static  remote [ ip: 10.2.16.123; ]
 }

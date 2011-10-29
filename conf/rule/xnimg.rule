@@ -1,34 +1,18 @@
-[
-	{
-		"scope": "s.xnimg.cn",
-		"setting": "domain",
-		"handler": [
-			"remote",
-			"10.2.74.90"
-		]
-	},
-	{
-		"scope": "s.xnimg.cn",
-		"setting": "rewrite",
-		"handler": [
-			"^/[ab]?([0-9]+)/(.*)",
-			"/$2"
-		]
-	},
-	{
-		"scope": "test.renren.com",
-		"setting": "domain",
-		"handler": [
-			"remote",
-			"10.2.16.123"
-		]
-	},
-	{
-		"scope": "test.cooer.net",
-		"setting": "domain",
-		"handler": [
-			"remote",
-			"10.2.16.123"
-		]
-	}
-]
+#配置
+
+handler
+{
+	jichengS-static remote [ip: 10.2.74.90]
+}
+
+oneline
+{
+	test.renren.com  jicheng-static  #用这个绑host吧, 带/斜杠的做路径
+	test.cooer.net
+}
+
+s.xnimg.cn
+{
+	default jichengS-static
+	rewrite ^/[ab]?([0-9]+)/(.*)  /$2
+}

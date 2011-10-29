@@ -7,12 +7,7 @@
 
 //过滤请求的route总表
 //一个请求过来,拿到url就是查这个表挨个匹配
-var routeList = {
-	domain: [
-		//rules
-	]
-	
-};
+var routeList = {};
 
 //支持分组
 //从配置文件加载上来并处理过的分组数据结构
@@ -21,9 +16,8 @@ var ruleGroups = {};
 
 //TODO: 加载配置的时候需要把所有条目在这里建立索引
 //方便通过unid直接获取一条rule的全部信息
-var rules = {
-	// unid -> rule
-};
+// unid -> rule
+var rules = {};
 
 //rule的数据结构
 //{unid: 3, groupname: 'wpi', domain: 'wpi.renren.com', patten: '', regex: '', handler: 'handler', on: true}
@@ -198,307 +192,100 @@ function delFromRoutelist(unid){
 //}
 
 
-
-
-//启用一个分组的规则
-exports.enable = function(group){
-	//*是个暗号,启用所有分组
-	if(group == '*'){
-		for(i in groups){
-			arguments.callee(i);
-		} 
-		return;
-	}
-
-	if( !(group in groups) ){
-		console.log('<ERROR>: No group Named '+ group);
-		return;
-	}
-	//避免重复启用
-	if(groups[group].isEnabled) return;
-
-	var conflict = [];
-	//遍历这个分组所有的规则,添加到路由表中
-	groups[group].forEach(function(v,i){
-		var code = enableRule(v);
-		//如果冲突的话,记录这次冲突
-		if(code == -1){
-			conflict.push(v);
-		}
-	});
-
-	//完成操作
-	groups[group].isEnabled = true;  //标示这个分组已经启用
-	console.log('Enabled Group: '+ group);
-	if(conflict.length){
-		console.log('<Conflict>: ', conflict);
-	}
-};
-
-//停用一个分组的规则
-exports.disable = function(group){
-	// *是个暗号,停用所有分组
-	if(group == '*'){
-		exports.exact = {};
-		exports.sections = {};
-		for(i in groups){
-			groups[i].isEnabled = false;
-		} 
-		return;
-	}
-	//避免重复操作
-	if(!groups[group].isEnabled) return;
-
-	if( !(group in groups) ){
-		console.log('<ERROR>: No group Named '+ group);
-		return;
-	}
-	//遍历这个分组,逐条delete
-	groups[group].forEach(function(v,i){
-		var code = disableRule(v);
-	});
-
-	//完成操作
-	groups[group].isEnabled = false;  //标示这个分组已经停用
-	console.log('Disabled Group: '+ group);
-};
-//}}}
-
-//把一个规则插入指定的map中
-//判断是否有,值是否相同
-//@param map{object} 把键值对插入这个map
-//@param key{string} 
-//@param value{array} 只能用0和1两个格子,第三个格子放置引用计数
-//@param target{obj} {exact:{}, sections:{}}可以不是全局的那个exact和sections  暂时不用
-function enableRule(rule, target){
-	var code = 0; //0:只有这一条 1:计数+1 -1:冲突
-	var a = splitRule(rule, target);
-	var map = a.map,
-		key = a.key,
-		array = a.array;
-
-	//判断是否有这个key
-	if(key in map){
-		if( isSameHandler(map[key], array) ){  //如果有,值是否相同
-			map[key][2]++;  //计数+1
-			code = 1;
-		}else{
-			//TODO: 有冲突,目前方案,直接覆盖,并给用户显示提示
-			map[key] = array.slice(0).concat( ++map[key][2] );
-			code = -1;
-		}
-	}else{  //没有这个key,直接set进去
-		map[key] = array.slice(0);
-		map[key][2] = 1;
-	}
-	return code;
-}
-
-//跟上面对应的,删除一个规则
-function disableRule(rule){
-	var code = 1;  //0:删除了这条 1:计数-1
-	var a = splitRule(rule);
-	var map = a.map,
-		key = a.key;
-
-	//判断是否有这个key
-	if( !(key in map) ){
-		return -1;
-	}
-	if( --map[key][2] <= 0 ){  //如果计数归零了
-		delete map[key];  //删除这个属性
-		return 0;
-	}
-	return 1;
-}
-
-//识别一条rule的类型
-//设计想法: 把rule的操作抽象成 key和array的比较
-//map是被操作的那个object, key是需要操作的那个键
-//array统一只用0和1两个格子
-function splitRule(rule, obj){
-	var router = obj || exports;  //这个router可以是指定的一个空的{exact: {}, sections: {}}
-	if(rule.scope == '*'){  //全局的全路径匹配
-		map = router.exact;
-		key = rule.location;
-		array = rule.handler;
-	}else{  //特定域名的设置
-		var domain = rule.scope;
-		var section = router.sections[domain];
-		if( !section ){ section = router.sections[domain] = {}; }
-		if( rule.setting ){ //首先判断是否特殊属性 setting
-			map = section;
-			key = rule.setting;
-			array = rule.handler;
-		}else{  //普通location的handler
-			map = section.location;
-			if(!map) map = section.location = {};
-			key = rule.location;
-			array = rule.handler;
-		}
-	}
-	
-	return {
-		map: map,
-		key: key,
-		array: array
-	};
-}
-//判断两个array的前两个元素是否相同
-//同样适用rewrite
-//return true/false;
-function isSameHandler(a, b){
-	if(a[0] == b[0] && a[1] == b[1]){
-		return true;
-	}
-	return false;
-}
-
-//向配置中添加一条规则
-//如果有重复,直接覆盖,相当于edit
-//return 0:新加了一条 1:编辑了一条
-exports.addRule = function(group, rule){
-	var g = groups[group];
-	var i = findRule(g, rule);
-	var edit = 0;  //enableRule是否编辑模式调用
-	if( i<0 ){  //这是个新的rule
-		g.push(rule);
-	}else{  //要编辑现有的rule
-		g.splice(i,1, rule);
-		edit = 1;
-	}
-	//如果这个分组是启用状态,得通知用户"原有设置已经被覆盖"
-	if(g.isEnabled){
-		enableRule(rule, edit);
-	}
-	return edit;
-};
-
-//从配置中添删除一条规则
-//return -1(没有这个条目) 0正常删除了
-exports.delRule = function(group, rule){
-	var g = groups[group];
-	var i = findRule(g, rule);
-	if( i<0 ){
-		return -1;
-	}
-	//如果这个分组刚好启用呢,禁用这个规则
-	if( g.isEnabled ) disableRule( g[i] );
-
-	g.splice(i, 1);  //从该组删除
-	return 0;
-};
-
 //查看一个分组是否是启用状态
 function isEnabled(group){
 	return groups[group].isEnabled;
 }
 
-//找到跟rule匹配的设置
-//只做比较,找到相同的那个规则,返回序号
-function findRule(g, rule){
-	var x = -1;
-	//又是遍历,找到那一条
-	for(var i=0; i<g.length; i++){
-		if(g[i].domain == rule.domain){
-			if( rule.rewrite && g[i].rewrite == rule.rewrite ){
-				x = i;
-				break;
-			}else if( rule.location && g[i].location == rule.location){
-				x = i;
-				break;
-			}
-		}
-	}
-	return x;
-}
 
+/* ---------- 配置文件处理和初始化 ------------- */
 var fs = require('fs');
 var path = require('path');
-//保存一个分组
+var Config = require('./RParser.js');  //配置文件解析器
+
+//定义一些常用目录
 var dir_base = __dirname;  //程序根目录
 var dir_conf = path.join(dir_base, '/conf');
 var dir_rule = path.join(dir_conf, '/rule');
+var fileList = [];
 
 //保存一个分组的规则到相应的文件
-function saveGroup(group){
-	var rules = groups[group];
-	//if( !rules.isModified ) return 0; //没有修改过的话不需要保存
-	//覆盖写入
-	var fpath = path.join(dir_rule, group +'.rule');
-	rules = JSON.stringify(rules, '', '\t'); //这里\t格式话输出的JSON
-	fs.writeFileSync( fpath, rules, 'utf8');
-}
+//function saveGroup(group){
+//	var rules = groups[group];
+//	//if( !rules.isModified ) return 0; //没有修改过的话不需要保存
+//	//覆盖写入
+//	var fpath = path.join(dir_rule, group +'.rule');
+//	rules = JSON.stringify(rules, '', '\t'); //这里\t格式话输出的JSON
+//	fs.writeFileSync( fpath, rules, 'utf8');
+//}
 
 //只负责加载指定的配置到groups中
 //完全同步的函数
 //@param filename{str} 带扩展名的文件名字符串
-function loadGroup(filename){
+function loadGroupFile(filename){
+	var name = path.basename(filename, '.rule');
 	var fpath = path.join( dir_rule , filename);
+
 	var content = fs.readFileSync(fpath, 'utf8');
-	var routeList = null;
 	try{
-		routeList = JSON.parse(content);
+		var group = Config.parse(content);
 	}catch(e){
-		console.error('配置文件JSON解析出错: ', content);
+		console.error('配置文件解析出错: ', content);
 		return -1;
 	}
+
+
+	//开始处理这个分组的信息
+	var records = group.rules;
+	group.rules = {};
+	if(records){  //如果有这些项目
+		records.forEach(function(rule){
+			rule['groupname'] = name;
+			var id = getUnid(rule);
+			group.rules[id] = rule;
+		});
+	}
+	ruleGroups[name] = group;
 	
-	var group = path.basename(filename, '.rule');
-	if(routeList){
-		groups[group] = routeList;
+	//添加到文件列表 监视这个文件
+	if( fileList.indexOf(filename) < 0 ){
+		fileList.push(filename);
+		if(process.platform.toLowerCase() != 'win32'){  //TODO: 目前windows版本的nodejs还不支持这个功能
+			var fpath = path.join(dir_rule, filename);
+			fs.watchFile(fpath, function(curr, prev){
+				//console.info(curr, prev);
+				if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
+				//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
+				reloadGroup(name);
+			});
+		}
 	}
 }
 //把指定分组保存到磁盘
-exports.save = function(group){
-	if(!group || group == '*'){  //保存所有分组
-		for(var i in groups){
-			saveGroup(i);
-		}
-		return;
-	}
-	if( !(group in groups)) return;
-	saveGroup(group);
-};
+//exports.save = function(group){
+//	if(!group || group == '*'){  //保存所有分组
+//		for(var i in groups){
+//			saveGroup(i);
+//		}
+//		return;
+//	}
+//	if( !(group in groups)) return;
+//	saveGroup(group);
+//};
 
 //重新加载一个分组文件的规则列表
-var reload = exports.reload = function(filename){
-	var group = path.basename(filename, '.rule');
+var reloadGroup = exports.reloadGroup = function(groupname){
 	//停用分组
-	var e = groups[group].isEnabled;
-	exports.disable(group);
+	var e = ruleGroups[groupname].isEnabled;
+	disableGroup(groupname);
 	//加载
-	loadGroup( group +'.rule' );
+	loadGroupFile( filename +'.rule' );
 	//重新启用分组
-	if(e) exports.enable(group);
+	if(e) enableGroup(groupname);
 };
 
 //初始化此模块时处理文件系统上的配置
 //(function(){
-//	var rs = fs.readdirSync(dir_rule);
-//	rs.forEach(function(r,i){
-//		if( ! /\.rule$/.test(r) ) return;  //扩展名必须是rule的文件才是配置文件
-//		loadGroup(r);
-//		var fpath = path.join(dir_rule, r);
-//		//监视这个文件
-//		if(process.platform.toLowerCase() != 'win32'){  //TODO: 目前windows版本的nodejs还不支持这个功能
-//			fs.watchFile(fpath, function(curr, prev){
-//				//console.info(curr, prev);
-//				if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
-//				//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
-//				reload(r);
-//			});
-//		}
-//	});
-//
-//	//读取配置信息,启用相应的分组
-//	var file_conf = path.join(dir_conf, '/dproxy.conf');
-//	var conf = fs.readFileSync( file_conf , 'utf8');
-//	conf = JSON.parse(conf);
-//	conf.enabledGroups.forEach(function(v,i){
-//		exports.enable(v);
-//	});
-//
 //	//程序退出的时候保存groups的启用状态
 //	process.on('exit', function(){
 //		exports.save();
@@ -512,82 +299,27 @@ var reload = exports.reload = function(filename){
 //})();
 
 //重写以后的初始化程序
-	var gHandlers = {
-		'jicheng-static': {
-			method: 'remote',
-			targetIP: '10.2.16.123'
-		},
-		'chuanye-static': {
-			method: 'remote',
-			targetIP: '10.2.74.111'
-		}
-	};
+var gHandlers = {
+	'jicheng-static': {
+		method: 'remote',
+		ip: '10.2.16.123'
+	},
+	'chuanye-static': {
+		method: 'remote',
+		ip: '10.2.74.111'
+	}
+};
+
 (function(){
-	//从磁盘上加载分组配置
+	//从磁盘上加载分组配置 遍历每个分组完成初始化
+	var rs = fs.readdirSync(dir_rule);
+	rs.forEach(function(filename,i){
+		if( ! /\.rule$/.test(filename) ) return;  //扩展名必须是rule的文件才是配置文件
+		loadGroupFile(filename);
+	});
 
-	var webpager = {
-		enabled: true,
-		handlers: {
-			'huihua-static': {
-				method: 'remote',
-				targetIP: '10.2.74.'
-			}
-		},
-		rules: [
-			{groupname: 'webpager', domain: 's.xnimg.cn,a.xnimg.cn', patten: '/jspro/xn.app.webpager.js', handler: 'jicheng-static'},
-			{groupname: 'webpager', domain: 's.xnimg.cn', patten: '/jspro/pager-channel6.js', handler: 'jicheng-static'}
-		]
-	};
-
-	var xnimg = {
-		enabled: true,
-		settings: {
-			'xnimg.cn,s.xnimg.cn,a.xnimg.cn': {
-				rewrite: ["^\/[ab]?([0-9]+)\/(.*)", "/$2" ,1]
-			}
-		}
-	};
-
-	var wpi = {
-		enabled: true,
-		handlers: {
-			'ime-file': {
-				method: 'local',
-				file: '/Users/Lijicheng/htdocs/ime.htm'
-			}
-		},
-		rules: [
-			{groupname: 'wpi', domain: 'wpi.renren.com', patten: '/wtalk/ime.htm?v=5', handler: 'ime-file'}
-		]
-	};
-
-//开始从配置数据初始化列表
-
-var groups = {};
-groups['webpager'] = webpager;
-groups['xnimg'] = xnimg;
-groups['wpi'] = wpi;
-
-//遍历每个分组完成初始化
-var g;
-for(g in groups){
-	var records = groups[g].rules;
-	groups[g].rules = {};
-	if(records){  //如果有这些项目
-		records.forEach(function(rule){
-			var id = getUnid(rule);
-			groups[g].rules[id] = rule;
-		});
-	}
-	ruleGroups[g] = groups[g];
-
-	if(groups[g].enabled){
-		enableGroup(g);
-	}
-}
-
-exports.routeList = routeList;
-exports.rules = rules;
+	exports.routeList = routeList;
+	exports.rules = rules;
 })();
 
 
