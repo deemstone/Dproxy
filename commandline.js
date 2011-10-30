@@ -112,7 +112,7 @@ shell.command('down', function(args, next){
 	});
 });
 //查看规则列表
-shell.command('show', function(args, next){
+shell.command('ls', function(args, next){
 	//处理参数args
 	if(!args.length){  //打印所有已经启用的规则
 		proxy.request('/sifter/rule/list', function(rs, err){
@@ -127,7 +127,7 @@ shell.command('show', function(args, next){
 			next();
 		});
 	}else{
-		proxy.request('/sifter/group/show', args[0], function(rs, err){
+		proxy.request('/sifter/group/content', args[0], function(rs, err){
 			if(err){
 				shell.print(err);
 				next();

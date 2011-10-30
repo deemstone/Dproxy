@@ -255,7 +255,8 @@ var fileList = [];
 //只负责加载指定的配置到groups中
 //完全同步的函数
 //@param filename{str} 带扩展名的文件名字符串
-function loadGroupFile(filename){
+//@param enable{bool} 是否加载完成后启用分组
+function loadGroupFile(filename, enable){
 	var name = path.basename(filename, '.rule');
 	var fpath = path.join( dir_rule , filename);
 
@@ -288,6 +289,8 @@ function loadGroupFile(filename){
 		});
 	}
 	ruleGroups[name] = group;
+
+	if(group.enabled || enable) enableGroup(name);  //配置里写了启用 或者明确用参数指定启用
 	
 	//添加到文件列表 监视这个文件
 	if( fileList.indexOf(filename) < 0 ){
@@ -321,9 +324,9 @@ var reloadGroup = exports.reloadGroup = function(groupname){
 	var e = ruleGroups[groupname].enabled;
 	disableGroup(groupname);
 	//加载
-	loadGroupFile( groupname +'.rule' );
+	loadGroupFile( groupname +'.rule' , e);
 	//重新启用分组
-	if(e) enableGroup(groupname);
+	//if(e) enableGroup(groupname);
 };
 
 //初始化此模块时处理文件系统上的配置

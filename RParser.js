@@ -101,16 +101,23 @@ function buildGroup(table){
 	}
 
 	var sKeys = {'rewrite': '', 'default': ''};
-	var oneline, _handler, _domain;  //上一条规则的handler,如果本条没有,沿用上一条的 当前处理的某个块的域
+	var oneline, _handler;  //上一条规则的handler,如果本条没有,沿用上一条的 当前处理的某个块的域
+	//标志分组启用的设置
+	table.forEach(function(key, i){
+		if(key == 'enabled'){
+			group.enabled = true;
+		}
+		table.splice(i,1);
+	});
 
 	for(var scope in table){
+		
 		if(scope == 'oneline'){  //最后处理这个特殊的list
 			oneline = table[scope];
 			continue;
 		}
 		if(scope == 'handler') continue;  //这里不处理handler块
 		
-		domain = scope;
 		table[scope].forEach(function(l){
 			//提取出第一个字符串,判断是否是某项setting
 			l = l.split(/\s+/);

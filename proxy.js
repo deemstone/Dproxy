@@ -98,7 +98,7 @@ service.command('/sifter/rule/add', function(cmd, done){
 	done(m);
 });
 //显示一个分组的详细内容
-service.command('/sifter/group/show', function(cmd, done){
+service.command('/sifter/group/content', function(cmd, done){
 	var groupname = cmd.param;
 	var table = sifter.getGroupContent(groupname);
 	cmd.appendix = table;

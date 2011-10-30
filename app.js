@@ -10,21 +10,15 @@ proxy.shutdown = function(){
 
 //把所有没处理的异常信息记录在文件里
 var fs = require('fs');
-var logFile = fs.open('./doc/error_log.txt', 'a');
-function logError(e){
-	var logString = [];
-	logString.push('============ A New Error : '+ new Date());
-	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );
-	logString.push( JSON.stringify(e) );
-	fs.write(logFile, logString.join('\n\n') );
-}
-
+var logFile = fs.openSync('./doc/error_log.txt', 'a');
 //处理各种错误
-var _t = 0;
 process.on('uncaughtException', function(err)
 {
-	console.log(++_t, err);
-    logError(err);
+	var logString = ['\n\n'];
+	logString.push('============ A New Error : '+ new Date());
+	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );
+	logString.push( JSON.stringify(err) );
+	var i = fs.writeSync(logFile, logString.join('\n\n'));
 });
 
 //log工具

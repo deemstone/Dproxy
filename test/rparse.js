@@ -29,7 +29,7 @@ target['wpi.renren.com'] = [
 	];
 
 var finalTarget = {
-	enabled: false,
+	enabled: true,
 	handlers: { 
 		'huihua-static': { ip: '10.2.74.86', method: 'remote' },
 		'wentao-static': { ip: '10.2.74.173', method: 'remote' },

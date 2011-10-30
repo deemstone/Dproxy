@@ -1,6 +1,7 @@
 #Dproxy的规则配置文件
 #模仿nginx配置文件格式
 
+enabled  #默认开启
 #这个组里局域handler
 handler
 {
@@ -23,7 +24,7 @@ oneline
 s.xnimg.cn,a.xnimg.cn
 {
 	rewrite   ^/[ab]?([0-9]+)/(.*)   /$2  #重写url
-	#default  jicheng-static  #这个域的默认handler,相当于绑host
+	default  jicheng-static  #这个域的默认handler,相当于绑host
 
 	#这个域名下的规则列表
 	location{
@@ -36,6 +37,6 @@ s.xnimg.cn,a.xnimg.cn
 
 wpi.renren.com
 {
-	#/wtalk/ime.htm?v=5  huihua-static  #这个域名没有特殊设置,那就直接写url规则
+	/wtalk/ime.htm?v=5  huihua-static  #这个域名没有特殊设置,那就直接写url规则
 }
 
