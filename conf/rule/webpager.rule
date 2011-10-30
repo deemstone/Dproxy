@@ -15,10 +15,9 @@ handler
 #临时添加一个规则,不用写复杂的结构
 oneline
 {
-	http://www.baidu.com  jicheng-static  #这条没指定uri 默认是/
-	http://wentao.xnimg.cn/* wentao-static  #这条只有个/* 相当于这个域下的default
+	http://www.baidu.com/  jicheng-static  #指定网站首页,必须带/斜杠
+	wentao.xnimg.cn  wentao-static  #不带斜杠只有域名 意思是default(相当于绑host)
 }
-
 
 
 s.xnimg.cn,a.xnimg.cn

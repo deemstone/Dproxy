@@ -4,6 +4,7 @@
  */
 var readline = require('readline');
 var tty = require('tty');
+tty.setRawMode(false);
 
 var prefix = 'proxy> '; //命令行提示符
 var rl;  //readline的实例
@@ -63,12 +64,16 @@ exports.instantOn = function(cb){
 	//暂停readline,打开滚动,监听按键
 	rl.pause();
 	tty.setRawMode(true);
+	process.stdin.on('keypress', onKeypress);
+	console.log('Instant ON');
 };
 exports.instantOff = function(){
 	if(instantCallback) instantCallback();
 
+	process.stdin.removeListener('keypress', onKeypress);
 	rl.resume();
 	tty.setRawMode(false);
+	console.log('Instant OFF');
 	prompt();
 };
 //设置即时模式的消息处理函数
@@ -76,10 +81,9 @@ exports.instantOff = function(){
 exports.instantMod = function(processer){
 	instantProcesser = processer;
 };
-//instantMod下接收键盘事件
-//process.stdin.on('keypress', function(char, key) {
-////TODO:
-////调用instantProcesser相应这个输入
-//	instantProcesser.apply(this, arguments);
-//		//TODO: 能不回显就好了
-//});
+function onKeypress(char, key){
+//调用instantProcesser相应这个输入
+	instantProcesser.apply(this, arguments);
+		//TODO: 能不回显就好了
+	
+}

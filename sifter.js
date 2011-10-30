@@ -19,6 +19,7 @@ var ruleGroups = {};
 // unid -> rule
 var rules = {};
 
+var sKeys = ['rewrite', 'default'];  //目前还没啥用
 //rule的数据结构
 //{unid: 3, groupname: 'wpi', domain: 'wpi.renren.com', patten: '', regex: '', handler: 'handler', on: true}
 
@@ -32,13 +33,16 @@ var enableGroup = exports.enableGroup = function(gname){
 		return false;  //没这个分组
 	}
 	var rules = ruleGroups[gname].rules || {};
+	var settings = ruleGroups[gname].settings || {};
 
 	var unid;
 	for(unid in rules){  //逐个添加到routeList中
 		addToRoutelist(unid);
 	}
+	for(unid in settings){
+		addToRoutelist(unid);
+	}
 	ruleGroups[gname].enabled = true;
-	//TODO: domain的配置 rewrite
 };
 //停用一个分组
 //把该组规则逐个从routeList删除
@@ -48,9 +52,13 @@ var disableGroup = exports.disableGroup = function(gname){
 		return false;  //没这个分组
 	}
 	var rules = ruleGroups[gname].rules || {};
+	var settings = ruleGroups[gname].settings || {};
 
 	var unid;
 	for(unid in rules){  //逐个添加到routeList中
+		delFromRoutelist(unid);
+	}
+	for(unid in settings){
 		delFromRoutelist(unid);
 	}
 	ruleGroups[gname].enabled = false;
@@ -135,11 +143,15 @@ exports.getRouteList = function(){
 //rule的 运行时唯一ID
 //把rule添加到rules列表中,返回unid
 var unid = 0;
-function getUnid(rule){
+function getUnid(rule){  //也可能是setting
 	var i = ++unid;
 	rule.unid = i;
-	//TODO: 没有*通配符的优化
-	rule.regex = buildRegex(rule.patten),
+	if(rule.key){  //这是一跳设置
+		
+	}else{
+		//TODO: 没有*通配符的优化
+		rule.regex = buildRegex(rule.patten);
+	}
 	rules[i] = rule;
 	return i;
 }
@@ -176,7 +188,12 @@ function addToRoutelist(unid){
 	var domain = rule.domain.split(',');  //如果是多域名的配置
 	domain.forEach(function(d){
 		var rules = getDomainRules(d);
-		rules.unshift(rule);  //添加到队列的头部
+		if(rule.key){  //这是个设置,加入到对应域名下的key属性中
+			rules[rule.key] = rules[rule.key] || [];
+			rules[rule.key].unshift(rule);
+		}else{
+			rules.unshift(rule);  //添加到队列的头部
+		}
 	});
 }
 //从routeList中删除unid的记录
@@ -189,6 +206,10 @@ function delFromRoutelist(unid){
 	//逐个domain的处理
 	domain.forEach(function(d){
 		var rules = getDomainRules(d);
+		if(rule.key){  //要删除的是一条设置
+			rules = rules[ rule.key ];  //让下面的for循环在key这个属性中查找
+		}
+
 		for(var i=0; i<rules.length; i++){
 			if(rules[i].unid == unid){
 				var s = rules.splice(i, 1);  //逐个查找,找到了就删除这个元素
@@ -248,13 +269,22 @@ function loadGroupFile(filename){
 
 
 	//开始处理这个分组的信息
-	var records = group.rules;
+	var records = group.rules;  //处理rules列表
 	group.rules = {};
 	if(records){  //如果有这些项目
 		records.forEach(function(rule){
 			rule['groupname'] = name;
 			var id = getUnid(rule);
 			group.rules[id] = rule;
+		});
+	}
+	var settings = group.settings;  //处理settings列表
+	group.settings = {};
+	if(settings){  //如果有这些项目
+		settings.forEach(function(s){
+			s['groupname'] = name;
+			var id = getUnid(s);
+			group.settings[id] = s;
 		});
 	}
 	ruleGroups[name] = group;
@@ -349,26 +379,45 @@ exports.check = function(url){
 	//查找host是否存在于routeList中
 	if(!(url.host in routeList)) return false;
 
+	//查看是否有rewrite
+	var rewrite = routeList[url.host]['rewrite'];
+	if( rewrite && rewrite[0]){
+		uri = rewriteUri(uri, rewrite[0].param);  //用列表中最上面一条设置
+	}
+
 	//挨个匹配host中的规则
-	var handler = false,
-		r, g;
+	var target = false;
 	var rules = routeList[url.host];
 	for(var i=0; i<rules.length; i++){
 		if( rules[i].regex.test(uri) ){
-			r = rules[i];
-			g = ruleGroups[r.groupname];
-			if( r.handler in g.handlers ){  //是否在分组的handler里
-				handler = g.handlers[ r.handler ];
-			}else{
-				handler = gHandlers[ r.handler ];
-			}
+			target = rules[i];
 			break;
 		}
 	}
-	if( !handler ) return false; //没找到,返回false
 
-	//如果匹配成功,找到对应的handler数据,并返回
-	return handler;
+	var group, handler = false;
+	if( target ){  //上面匹配成功,找到了一条规则数据
+		group = ruleGroups[target.groupname];
+		handler = target.handler;
+	}else{  //查看是否有default
+		var proxy_pass = routeList[url.host]['default'];
+		if(proxy_pass && proxy_pass[0]){  //也是取最上面一条
+			group = ruleGroups[ proxy_pass[0].groupname ];
+			handler = proxy_pass[0].param;
+		}
+	}
+
+	if(handler){  //用上一步得到的handler名字取到handler数据
+		if( handler in group.handlers ){  //是否在分组的handler里
+			handler = group.handlers[ handler ];
+		}else{
+			handler = gHandlers[ handler ];
+		}
+		return handler;
+	}else{
+		return false; //没找到,返回false
+	}
+
 
 	/*
 	 * 最终传递给handler的vector结构
@@ -384,7 +433,7 @@ exports.check = function(url){
 };
 
 //实现nginx类似的rewrite
-function rewrite(uri, rule){
+function rewriteUri(uri, rule){
 
 	var rs = uri.match( rule[0] );
 	if(rs){

@@ -132,7 +132,7 @@ shell.command('show', function(args, next){
 			}
 
 			var table = rs.appendix;
-			var output = printRouteList(table);
+			var output = printGroupContent(table);
 			shell.print( output.join('\n') );
 			next();
 		});
@@ -169,7 +169,6 @@ shell.instantMod(function(char, key){
 		default:
 			//输出一个横线 + 状态信息
 			shell.print('\n\n\n------------------------分割线-----------------------');
-
 	}
 });
 
@@ -247,7 +246,7 @@ function printRouteList(table){
 	for(var domain in scopes){
 		output.push('<'+ domain +'>');
 		scopes[domain].forEach(function(r){
-			output.push(' '+ r.patten +'  --  '+ r.groupname +'>'+ r.handler);
+			output.push(' ['+ r.unid +']'+ r.patten +'  --  '+ r.groupname +'>'+ r.handler);
 		});
 	}
 

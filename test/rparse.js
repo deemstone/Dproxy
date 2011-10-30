@@ -35,14 +35,13 @@ var finalTarget = {
 		'wentao-static': { ip: '10.2.74.173', method: 'remote' },
 		'jicheng-static': { ip: '10.2.16.123', method: 'remote' } 
 	},
-	settings: {},
+	settings: [
+		{ key: 'default', param: 'wentao-static', domain: 'wentao.xnimg.cn' },
+		{ key: 'rewrite', param: [ '^/[ab]?([0-9]+)/(.*)', '/$2' ], domain: 's.xnimg.cn,a.xnimg.cn' },
+		{ key: 'default', param: [ 'jicheng-static' ], domain: 's.xnimg.cn,a.xnimg.cn' }
+	],
 	rules: 
 	[ 
-		{ 
-			domain: 'wentao.xnimg.cn',
-			patten: '/*',
-			handler: 'wentao-static' 
-		},
 		{ 
 			domain: 'www.baidu.com',
 			patten: '/',

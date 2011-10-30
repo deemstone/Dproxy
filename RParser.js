@@ -86,7 +86,7 @@ function buildGroup(table){
 	var group = {
 		enabled: false,
 		handlers: {},
-		settings: {},
+		settings: [],
 		rules: []
 	};
 	
@@ -100,7 +100,7 @@ function buildGroup(table){
 		group.handlers = handlers;
 	}
 
-	var setting = {'rewrite': '', 'default': ''};
+	var sKeys = {'rewrite': '', 'default': ''};
 	var oneline, _handler, _domain;  //上一条规则的handler,如果本条没有,沿用上一条的 当前处理的某个块的域
 
 	for(var scope in table){
@@ -115,9 +115,13 @@ function buildGroup(table){
 			//提取出第一个字符串,判断是否是某项setting
 			l = l.split(/\s+/);
 			var name = l.shift();
-			if(name in setting){
-				//TODO: 域名setting的实现方案还没定,暂时不理会
-				//
+			if(name in sKeys){  //他是一条对该域名的配置
+				var setting = {
+					key: name,
+					param: l,
+					domain: scope
+				};
+				group.settings.push(setting);
 			}else{ //如果是普通的一条规则,添加到表中
 				_handler = l[0] || _handler;
 				var rule = {
@@ -156,18 +160,26 @@ function buildGroup(table){
 				host: l[2],
 				uri: l[3]
 			};
+			
+			if(url.uri == ''){  //这里还支持绑host的操作  http://s.xnimg.cn handler
+				var setting = {
+					domain: url.host,
+					key: 'default',
+					param: _handler
+				};
+				group.settings.unshift(setting);
+			}else{  //一条普通的规则
+				//生成rule对象
+				var rule = {
+					domain: url.host,
+					patten: url.uri || '/',  //如果只有域名,默认patten是根目录
+					handler: _handler
+				};
 
-			//TODO: 这里还应该支持绑host的操作  http://s.xnimg.cn/* handler
-
-			//生成rule对象
-			var rule = {
-				domain: url.host,
-				patten: url.uri || '/',  //如果只有域名,默认patten是根目录
-				handler: _handler
-			};
-
-			//放到ruleList中
-			group.rules.unshift(rule);
+				//放到ruleList中
+				group.rules.unshift(rule);
+				
+			}
 		});
 	}
 
