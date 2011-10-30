@@ -31,20 +31,19 @@ exports.server = http.createServer(function(request, response) {
 		//找到了匹配的handler
 		if(handler.method in methods){
 			var param = { pipe: pipe };
-			for (var property in handler) {
+			for (var property in handler) { //TODO: 工具库里面应该支持extend方法!!!
 				param[property] = handler[property];
 			}
-
 			methods[handler.method].serve(request, response, param);
 		}else{
 			//没有这个模块.. 可能是配置文件写错了
-			console.log('没有这个类型的handler: ', m);
+			var error = new Error('没有这个类型的handler: '+ m);
 			response.writeHead(500, {"Content-Type": "text/plain"});
 			response.write("调试代理服务器配置错误\n");
 			response.end();
 
 			//向管道补充一条response更新
-			pipe.write('error', { handler: 'error' });
+			pipe.write('error', error);
 		}
 	}else{
 		//没有匹配到,直接online

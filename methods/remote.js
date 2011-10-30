@@ -34,4 +34,18 @@ exports.serve = function(req, res, vector){
 		proxy_request.end();
 	});
 
+//{{错误处理
+	//远端服务器错误
+	proxy_request.on('error', function(e){
+		res.end();
+		pipe.write('error', e );
+	});
+
+	//客户端手动abort
+	req.on('close', function(e){
+		proxy_request.abort();
+		pipe.write('error', e );
+	});
+//}}End
+
 };

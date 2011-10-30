@@ -26,9 +26,8 @@ exports.serve = function(req, res, pipe){
 			status: p_response.statusCode,
 			headers: p_response.headers
 		});
-		//console.log("<-- : [Online] "+ req.method +":"+ p_response.statusCode + " " + req.url);
 		if('set-cookie' in p_response.headers){
-			console.log("<Set-Cookie>", p_response.headers['set-cookie']);
+			console.log2("<Set-Cookie>", p_response.headers['set-cookie']);
 		}
 		// `response.statusCode === 304`: No 'data' event and no 'end'
 		if (p_response.statusCode === 304) {
@@ -64,14 +63,18 @@ exports.serve = function(req, res, pipe){
 //{{错误处理
 	//远端服务器错误
 	p_request.on('error', function(e){
-		console.log('<ERROR-proxy> :'+ req.url, e);
 		res.end();
+		//throw new Error('<ERROR-proxy> :'+ req.url, e);
+		//这里不能直接抛异常,会导致当前的socket不能正常关闭
+		//然后积累多了就会报错: (node) Hit max file limit. Increase "ulimit - n"
+		pipe.write('error', e );
 	});
 
 	//客户端手动abort
 	req.on('close', function(e){
 		p_request.abort();
-		console.log('<ERROR-client> :'+ req.url, e);
+		//throw new Error('<ERROR-client> :'+ req.url, e);
+		pipe.write('error', e );
 	});
 //}}End
 }

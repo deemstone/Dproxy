@@ -34,22 +34,25 @@ var msgReceiver = function(m){
 
 		switch( m.cmds.shift() ){
 			case 'new':
-				console.info( '['+ m.param +']('+ m.appendix.method +') --> '+ m.appendix.url);
+				shell.print( '['+ m.param +']('+ m.appendix.method +') --> '+ m.appendix.url);
 				break;
 			case 'response':
-				console.info( '['+ m.param +'] - '+ m.appendix.status +' <-- '+ (m.appendix.file || m.appendix.headers['content-type']) );  //local - file | remote - headers
+				shell.print( '['+ m.param +'] - '+ m.appendix.status +' <-- '+ (m.appendix.file || m.appendix.headers['content-type']) );  //local - file | remote - headers
 				break;
 			case 'process':
-				console.info( '['+ m.param +'] -~~~- '+ m.appendix.handler);
+				shell.print( '['+ m.param +'] -~~~- '+ m.appendix.handler);
+				break;
+			case 'error':
+				shell.print( '['+ m.param +'] -XXX- Error:'+ m.appendix.message);  //这里appendix是一个Error对象
 				break;
 			default:
-				console.info('<transport>', m);
+				shell.print('<transport>', m);
+				break;
 		}
 	}else{
 		//其他预料之外的消息,暂时直接打印出来
-		console.log('<message>:', m);
+		console.log1('<message>:', m);
 	}
-	//output(m);  //TODO: [待验证]交给同一的消息处理程序
 };
 
 //直接向shell输出的类型

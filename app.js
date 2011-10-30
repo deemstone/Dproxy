@@ -8,13 +8,35 @@ proxy.shutdown = function(){
 	process.exit(0);
 };
 
-//处理各种错误
-//process.on('uncaughtException', function(err)
-//{
-//    console.log("\nError!!!!");
-//    console.log(err);
-//});
+//把所有没处理的异常信息记录在文件里
+var fs = require('fs');
+var logFile = fs.open('./doc/error_log.txt', 'a');
+function logError(e){
+	var logString = [];
+	logString.push('============ A New Error : '+ new Date());
+	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );
+	logString.push( JSON.stringify(e) );
+	fs.write(logFile, logString.join('\n\n') );
+}
 
+//处理各种错误
+var _t = 0;
+process.on('uncaughtException', function(err)
+{
+	console.log(++_t, err);
+    logError(err);
+});
+
+//log工具
+var _log_level = 0;
+console.log1 = function(){
+	if(_log_level < 1) return;
+	console.info.apply(console, arguments)
+};
+console.log2 = function(){
+	if(_log_level < 2) return;
+	console.info.apply(console, arguments)
+};
 
 /**
  * 启动时候的可选参数
