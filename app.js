@@ -3,6 +3,7 @@
  * 处理启动参数,用户界面
  */
 var proxy = require('./proxy.js');
+var PORT = 7070;  //开发的时候用7777 , 应用中一般用7070
 
 proxy.shutdown = function(){
 	process.exit(0);
@@ -68,5 +69,5 @@ if(socketfile){
 	cli.init(proxy);
 }
 
-proxy.server.listen(7777);
-console.log('--> : Proxy Server listening port 7070 !!');
+proxy.server.listen(PORT);
+console.log('--> : Proxy Server listening port '+ PORT +' !!');

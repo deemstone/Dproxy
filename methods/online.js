@@ -52,6 +52,7 @@ exports.serve = function(req, res, pipe){
 		//}
 
 	});
+	console.log2('<online p_request>', p_request);
 	req.on('data', function(chunk){
 		p_request.write(chunk, 'binary');
 	});

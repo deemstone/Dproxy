@@ -1,7 +1,7 @@
 #Dproxy的规则配置文件
 #模仿nginx配置文件格式
 
-enabled  #默认开启
+#enabled  #默认开启
 #这个组里局域handler
 handler
 {
