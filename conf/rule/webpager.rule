@@ -1,7 +1,7 @@
 #Dproxy的规则配置文件
 #模仿nginx配置文件格式
 
-#enabled  #默认开启
+enabled  #默认开启
 #这个组里局域handler
 handler
 {
@@ -10,7 +10,8 @@ handler
 	#文韬的静态
 	wentao-static  remote [ ip: 10.2.74.173 ]
 	#继成的静态
-	jicheng-static  remote [ ip: 10.2.16.123; ]
+	jicheng-static  remote [ ip: 10.2.74.217; ]
+	opm  opm [root: /Users/Lijicheng/htdocs/xn.static]
 }
 
 #临时添加一个规则,不用写复杂的结构
@@ -28,7 +29,8 @@ s.xnimg.cn,a.xnimg.cn
 
 	#这个域名下的规则列表
 	location{
-		/jspro/xn.app.webpager.js   jicheng-static
+		#/jspro/xn.app.webpager.js   jicheng-static
+		/jspro/xn.app.webpager.js   opm
 		/jspro/pager-channel6.js
 		/n/core/modules/webpager/webpager.css
 		/n/core/res/webpager/cssimg/webpager.css

@@ -1,0 +1,3 @@
+[submodule "node_modules/vows"]
+	path = node_modules/vows
+	url = https://github.com/cloudhead/vows.git

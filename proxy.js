@@ -9,7 +9,8 @@ var service = require('./service.js');  //程序的service layer
 //设置sifter可用的Handler
 var methods = {
 	local: require('./methods/local.js'),  //用本地文件相应请求
-	remote: require('./methods/remote.js')  //代理到其他测试服务器取文件
+	remote: require('./methods/remote.js'),  //代理到其他测试服务器取文件
+	opm: require('./methods/opm.js')  //到opm的fastcgi
 };
 
 //启动服务
