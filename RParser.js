@@ -14,7 +14,11 @@ exports.parse = function(cStr){
 	var RegExp_BLOCK_END = /^\s*}\s*$/; //检测Block结束 一定独占一行
 	var RegExp_BLANKLINE = /\s*/;  //空行
 
+if(process.platform.toLowerCase() == 'win32'){
+	var orig = cStr.split('\r\n');  //windows上的换行符SB
+}else{
 	var orig = cStr.split('\n');  //拆成一行一行的
+}
 	var path = [];  //正在解析的一行配置 所在的层级 path[0]就是当前正在解析的列表名
 	var table = [];
 	

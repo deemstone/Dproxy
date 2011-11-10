@@ -299,14 +299,19 @@ function loadGroupFile(filename, enable){
 	//添加到文件列表 监视这个文件
 	if( fileList.indexOf(filename) < 0 ){
 		fileList.push(filename);
-		if(process.platform.toLowerCase() != 'win32'){  //TODO: 目前windows版本的nodejs还不支持这个功能
-			var fpath = path.join(dir_rule, filename);
-			fs.watchFile(fpath, function(curr, prev){
-				//console.info(curr, prev);
-				if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
-				//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
-				reloadGroup(name);
-			});
+
+		function onFileEdit(curr, prev){
+			//console.info(curr, prev);
+			if( Number(curr.mtime) == Number(prev.mtime) ) return;  //没有被modified,不用处理
+			//---^ 这个Number将Date转换成整数来比较, 要不然两个object总是不相等
+			reloadGroup(name);
+		}
+		var fpath = path.join(dir_rule, filename);
+
+		if(process.platform.toLowerCase() != 'win32'){  //TODO: 目前windows版本的nodejs得用这个特殊的函数
+			fs.watchFile(fpath, onFileEdit);
+		}else{
+			fs.watch(fpath, onFileEdit);
 		}
 	}
 }

@@ -4,7 +4,7 @@
  */
 var readline = require('readline');
 var tty = require('tty');
-tty.setRawMode(false);
+//tty.setRawMode(false);
 
 var prefix = 'proxy> '; //命令行提示符
 var rl;  //readline的实例
