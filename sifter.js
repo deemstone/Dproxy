@@ -273,6 +273,10 @@ function loadGroupFile(filename, enable){
 	var records = group.rules;  //处理rules列表
 	group.rules = {};
 	if(records){  //如果有这些项目
+		records.reverse();
+		//倒序遍历,因为enable的时候又倒了一遍,
+		//为了保证配置里面的顺序在check的时候保持一样的顺序
+		
 		records.forEach(function(rule){
 			rule['groupname'] = name;
 			var id = getUnid(rule);
