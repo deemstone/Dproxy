@@ -13,23 +13,27 @@ proxy.shutdown = function(){
 var fs = require('fs');
 var logFile = fs.openSync('./doc/error_log.txt', 'a');
 //处理各种错误
-//process.on('uncaughtException', function(err)
-//{
-//	var logString = ['\n\n'];
-//	logString.push('============ A New Error : '+ new Date());
-//	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );
-//	logString.push( JSON.stringify(err) );
-//	var i = fs.writeSync(logFile, logString.join('\n\n'));
-//});
+process.on('uncaughtException', function(err)
+{
+	var logString = ['\n\n'];
+	logString.push('============ A New Error : '+ new Date());
+	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );
+	logString.push( JSON.stringify(err) );
+	var i = fs.writeSync(logFile, logString.join('\n\n'));
+});
 
 //log工具
-var _log_level = 1;
+var _log_level = 0;
 console.log1 = function(){
 	if(_log_level < 1) return;
 	console.info.apply(console, arguments)
 };
 console.log2 = function(){
 	if(_log_level < 2) return;
+	console.info.apply(console, arguments)
+};
+console.log3 = function(){
+	if(_log_level < 3) return;
 	console.info.apply(console, arguments)
 };
 

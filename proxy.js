@@ -18,20 +18,15 @@ exports.server = http.createServer(function(request, response) {
 	//console.log('['+ request.connection.remoteAddress + '] --> : new Request - ', request.url);
 	var pipe = roll.add();
 	pipe.cmds.push('transport');
-	pipe.write('new', {
-		method: request.method,
-		url: request.url,
-		headers: request.headers,
-		httpVersion: request.httpVersion
-	});
-	//TODO: 发送new的消息时候,应该带上handler的相关信息
 
 	//在sifter中检查
-	var handler = sifter.check(request.url);
-	if(handler){
+	var ret = sifter.check(request.url);
+	if(ret){
+		var handler = ret.handler;
+
 		//找到了匹配的handler
 		if(handler.method in methods){
-			var param = { pipe: pipe };
+			var param = { pipe: pipe, match: ret.match };
 			for (var property in handler) { //TODO: 工具库里面应该支持extend方法!!!
 				param[property] = handler[property];
 			}
@@ -51,6 +46,15 @@ exports.server = http.createServer(function(request, response) {
 		//not shot the list , get it frome online
 		online.serve(request, response, pipe);
 	}
+
+	pipe.write('new', {
+		method: request.method,
+		url: request.url,
+		headers: request.headers,
+		httpVersion: request.httpVersion,
+		handler: ret.handler || {method: 'online'}  //带上handler的相关信息
+	});
+
 	return true;
 });
 

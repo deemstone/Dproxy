@@ -1,4 +1,6 @@
-var php = require("./node-fastcgi");
+var fastcgi = require("./node-fastcgi");
+
+//TODO: Fastcgi服务没开?? 超时??
 
 var options = {
 	port: "8080",
@@ -10,7 +12,7 @@ var options = {
 	}
 };
 
-var agent = new php.Agent(4, options);
+var agent = new fastcgi.Agent(4, options);
 var reqs = 0;
 var resps = 0;
 

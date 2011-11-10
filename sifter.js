@@ -163,7 +163,7 @@ function buildRegex(patten){
 		patten = patten.replace(new RegExp('\\'+ char, 'g'), '\\'+char)
 	});
 
-	var regex = new RegExp( patten.replace(/\*/g, '\.*') +'$' );
+	var regex = new RegExp( patten.replace(/\*/g, '(.*)') +'$' );
 	return regex;
 }
 exports.buildRegex = buildRegex;
@@ -390,9 +390,10 @@ exports.check = function(url){
 
 	//挨个匹配host中的规则
 	var target = false;
+	var r;  //中间变量,每次匹配结果
 	var rules = routeList[url.host];
 	for(var i=0; i<rules.length; i++){
-		if( rules[i].regex.test(uri) ){
+		if( r = uri.match(rules[i].regex) ){
 			target = rules[i];
 			break;
 		}
@@ -416,7 +417,11 @@ exports.check = function(url){
 		}else{
 			handler = gHandlers[ handler ];
 		}
-		return handler;
+
+		return {
+			handler: handler,
+			match: r  //r就是上面匹配的match的结果,是个数组
+		};
 	}else{
 		return false; //没找到,返回false
 	}

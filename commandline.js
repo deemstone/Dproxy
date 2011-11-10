@@ -34,7 +34,7 @@ var msgReceiver = function(m){
 
 		switch( m.cmds.shift() ){
 			case 'new':
-				shell.print( '['+ m.param +']('+ m.appendix.method +') --> '+ m.appendix.url);
+				shell.print( '['+ m.param +']('+ m.appendix.method +'|'+ m.appendix.handler.method +') --> '+ m.appendix.url);
 				break;
 			case 'response':
 				shell.print( '['+ m.param +'] - '+ m.appendix.status +' <-- '+ (m.appendix.file || m.appendix.headers['content-type']) );  //local - file | remote - headers

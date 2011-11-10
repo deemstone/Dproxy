@@ -33,7 +33,7 @@ exports.serve = function(req, res, vector){
 		});
 		res.writeHead(proxy_response.statusCode, proxy_response.headers);
 	});
-	console.log2('<remote proxy-request>', proxy_request);
+	console.log3('<remote proxy-request>', proxy_request);
 
 	req.addListener('data', function(chunk) {
 		proxy_request.write(chunk, 'binary');

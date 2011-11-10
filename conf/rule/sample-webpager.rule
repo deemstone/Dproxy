@@ -1,7 +1,7 @@
 #Dproxy的规则配置文件
 #模仿nginx配置文件格式
 
-enabled  #默认开启
+#enabled  #默认开启
 #这个组里局域handler
 handler
 {
@@ -13,6 +13,8 @@ handler
 	jicheng-static  remote [ ip: 10.2.74.217; ]
 
 	opm  opm [root: /Users/Lijicheng/htdocs/xn.static]
+
+	jspro  local [folder: /Users/Lijicheng/htdocs/xn.static/jspro]
 }
 
 #临时添加一个规则,不用写复杂的结构
@@ -26,11 +28,12 @@ oneline
 s.xnimg.cn,a.xnimg.cn
 {
 	rewrite   ^/[ab]?([0-9]+)/(.*)   /$2  #重写url
-	default  jicheng-static  #这个域的默认handler,相当于绑host
+	#default  jicheng-static  #这个域的默认handler,相当于绑host
 
 	#这个域名下的规则列表
 	location{
 		#/jspro/xn.app.webpager.js   jicheng-static
+		/webpager/*  opm
 		/jspro/xn.app.webpager.js   opm
 		/jspro/pager-channel6.js
 		/n/core/modules/webpager/webpager.css
