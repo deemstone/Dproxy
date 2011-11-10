@@ -3,10 +3,17 @@
 handler
 {
 	jichengS-static remote [ip: 10.2.74.90]
+	wpi remote [ip: 10.3.16.46]
+	notify  remote [ip: 10.22.206.34]
+	status  remote [ip: 10.3.17.59]
 }
 
 oneline
 {
+	wpi.renren.com  wpi  #用这个绑host吧, 带/斜杠的做路径
+	notify.renren.com  notify
+	status.renren.com  status
+	blog.renren.com
 	test.renren.com  jicheng-static  #用这个绑host吧, 带/斜杠的做路径
 	test.cooer.net
 }

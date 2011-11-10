@@ -8,7 +8,7 @@
 exports.parse = function(cStr){
 
 	//建立一些常用的正则对象
-	var RegExp_COMMENT = /(^|\s+)#.*/; //匹配所有注释(配置文件中的某一行) 可以用这个正则去掉所注释
+	var RegExp_COMMENT = /\s*#.*/; //匹配所有注释(配置文件中的某一行) 可以用这个正则去掉所注释
 	var RegExp_BLOCK = /\s*(.*)\s*{\s*$/;  //检测是否是一个Block开头 {符号前后可以有多个空格,一定是本行的结束
 	var RegExp_BLOCK_OPEN = /^\s*{\s*$/;  //独占一行 BLOCK的开始
 	var RegExp_BLOCK_END = /^\s*}\s*$/; //检测Block结束 一定独占一行

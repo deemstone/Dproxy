@@ -11,6 +11,7 @@ handler
 	wentao-static  remote [ ip: 10.2.74.173 ]
 	#继成的静态
 	jicheng-static  remote [ ip: 10.2.74.217; ]
+
 	opm  opm [root: /Users/Lijicheng/htdocs/xn.static]
 }
 

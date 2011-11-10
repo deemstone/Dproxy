@@ -3,7 +3,7 @@
  * 处理启动参数,用户界面
  */
 var proxy = require('./proxy.js');
-var PORT = 7070;  //开发的时候用7777 , 应用中一般用7070
+var PORT = 7777;  //开发的时候用7777 , 应用中一般用7070
 
 proxy.shutdown = function(){
 	process.exit(0);
