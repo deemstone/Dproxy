@@ -163,7 +163,7 @@ function buildRegex(patten){
 		patten = patten.replace(new RegExp('\\'+ char, 'g'), '\\'+char)
 	});
 
-	var regex = new RegExp( patten.replace(/\*/g, '(.*)') +'$' );
+	var regex = new RegExp( '^'+ patten.replace(/\*/g, '(.*)') +'$' );
 	return regex;
 }
 exports.buildRegex = buildRegex;
@@ -414,9 +414,12 @@ exports.check = function(url){
 			handler = proxy_pass[0].param;
 		}
 	}
-
+	
+	console.log1('匹配的结果 : ', handler);
 	if(handler){  //用上一步得到的handler名字取到handler数据
-		if( handler in group.handlers ){  //是否在分组的handler里
+		if( typeof handler == 'object'){
+			
+		}else if( handler in group.handlers ){  //是否在分组的handler里
 			handler = group.handlers[ handler ];
 		}else{
 			handler = gHandlers[ handler ];

@@ -20,7 +20,7 @@ handler
 #临时添加一个规则,不用写复杂的结构
 oneline
 {
-	http://www.baidu.com/  jicheng-static  #指定网站首页,必须带/斜杠
+	http://www.baidu.com/  remote [ip:10.2.74.90]  #指定网站首页,必须带/斜杠
 	wentao.xnimg.cn  wentao-static  #不带斜杠只有域名 意思是default(相当于绑host)
 }
 
@@ -35,8 +35,8 @@ s.xnimg.cn,a.xnimg.cn
 		#/jspro/xn.app.webpager.js   jicheng-static
 		/webpager/*  opm
 		/jspro/xn.app.webpager.js   opm
-		/jspro/pager-channel6.js
-		/n/core/modules/webpager/webpager.css
+		#/jspro/pager-channel6.js
+		/n/core/modules/webpager/webpager.css local [file:/Users/Lijicheng/htdocs/xn.static/csspro/layout.css]
 		/n/core/res/webpager/cssimg/webpager.css
 	}
 }

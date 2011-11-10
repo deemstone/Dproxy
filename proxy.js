@@ -33,7 +33,7 @@ exports.server = http.createServer(function(request, response) {
 			methods[handler.method].serve(request, response, param);
 		}else{
 			//没有这个模块.. 可能是配置文件写错了
-			var error = new Error('没有这个类型的handler: '+ m);
+			var error = new Error('没有这个类型的handler: '+ handler.method);
 			response.writeHead(500, {"Content-Type": "text/plain"});
 			response.write("调试代理服务器配置错误\n");
 			response.end();

@@ -186,7 +186,7 @@ function printGroupContent(table){
 	for(var unid in rules){  //遍历rules列表,转换成以域名分类的键值表
 		r = rules[unid];
 		list = getScope( r.domain );
-		list.push([r.patten, r.handler]);
+		list.unshift([r.patten, r.handler]);
 	}
 
 	//没有就新建
@@ -232,7 +232,7 @@ function printRouteList(table){
 	for(var unid in rules){  //遍历rules列表,转换成以域名分类的键值表
 		r = rules[unid];
 		list = getScope( r.domain );
-		list.push(r);
+		list.unshift(r);
 	}
 
 	//没有就新建

@@ -77,6 +77,7 @@ exports.parse = function(cStr){
 	}
 
 	var table = parseBlock();
+	//console.log(table);
 	return buildGroup(table);
 };
 
@@ -94,22 +95,26 @@ function buildGroup(table){
 	if( table['handler'] ){
 		var handlers = {};  //从table里建立出所有的分组局域handler
 		table['handler'].forEach(function(h){
-			h = buildHandler(h);
-			handlers[ h.name ] = h.info;
+			h = h.split(/\s+/);
+			var name = h.shift();  //先把第一个字符串取出来,剩下一部分就是标准的handler格式了  method ++ [key: value ... ]
+			h = buildHandler( h.join(' ') );
+			handlers[ name ] = (typeof h == 'object' ? h : {method: 'undefined'}); //如果解析发现不是个标准的handler描述
 		});
 		group.handlers = handlers;
 	}
 
 	var sKeys = {'rewrite': '', 'default': ''};
 	var oneline, _handler;  //上一条规则的handler,如果本条没有,沿用上一条的 当前处理的某个块的域
-	//标志分组启用的设置
+
+	//一些全局的标志位
 	table.forEach(function(key, i){
-		if(key == 'enabled'){
+		if(key == 'enabled'){ //标志分组启用的设置
 			group.enabled = true;
 		}
 		table.splice(i,1);
 	});
 
+	//解析每个块
 	for(var scope in table){
 		
 		if(scope == 'oneline'){  //最后处理这个特殊的list
@@ -130,7 +135,7 @@ function buildGroup(table){
 				};
 				group.settings.push(setting);
 			}else{ //如果是普通的一条规则,添加到表中
-				_handler = l[0] || _handler;
+				_handler = buildHandler( l.join(' ') ) || _handler;  //调用buildHandler解析
 				var rule = {
 					domain: scope,
 					patten: name,
@@ -144,10 +149,11 @@ function buildGroup(table){
 			_handler = null;
 			table[scope]['location'].forEach(function(l){
 				l = l.split(/\s+/);
-				_handler = l[1] || _handler;
+				var patten = l.shift();
+				_handler = buildHandler(l.join(' ')) || _handler;
 				var rule = {
 					domain: scope,
-					patten: l[0],
+					patten: patten,
 					handler: _handler
 				};
 				group.rules.push( rule );
@@ -157,12 +163,13 @@ function buildGroup(table){
 	}
 
 	if(oneline){
-		_handler = null;
+		_handler = {method: 'undefined'};  //默认是error,只要配置文件没写错(第一条规则一定有指定handler)就会把这个提换掉了
 		oneline.forEach(function(l){
 			l = l.split(/\s+/);
+			var url = l.shift();
 			//解析url 分成host和uri两部分
-			_handler = l[1] || _handler;
-			l = l[0].match(/(http:\/\/)?([^\/]*)(.*)$/);
+			_handler = buildHandler( l.join(' ') ) || _handler;  //后面可以直接写行内handler描述 直接调用buildHandler解析
+			l = url.match(/(http:\/\/)?([^\/]*)(.*)$/);
 			var url = {
 				host: l[2],
 				uri: l[3]
@@ -179,7 +186,7 @@ function buildGroup(table){
 				//生成rule对象
 				var rule = {
 					domain: url.host,
-					patten: url.uri || '/',  //如果只有域名,默认patten是根目录
+					patten: url.uri,  //如果是某域名的根目录,必须指定"/" 原因看上面的if
 					handler: _handler
 				};
 
@@ -194,24 +201,25 @@ function buildGroup(table){
 }
 
 //handler字串解析用到的正则表达式
-var RegExp_HANDLER = /^([^\s]+)\s+([^\s]+)\s+\[(.*)\]\s*$/ ;  //没有空格(之前的处理都给去掉了) + 字符串 + 空格 + 字符串 + [:;格式的字符串]
+var RegExp_HANDLER = /^([^\s]+)\s+\[(.*)\]\s*$/ ;  //没有空格(之前的处理都给去掉了) + 字符串 + 空格 + 字符串 + [:;格式的字符串]
 //从格式中字符串提取handler信息
 //参数: h是配置文件中描述handler的字符串
-//返回: {name: '', info: {method: '', ...} }
+//返回: {method: '', ... }
 function buildHandler(h){
 	var r = h.match( RegExp_HANDLER );
 	//console.log('<正则匹配结果>:', r);
-	if(!r) return null;
+	if(!r){
+		if(/\s+/.test(h)){  //如果穿过来的字符串里面有空格,但是不符合标准handler描述格式,肯定是配置写错了
+			return false;
+		}else{
+			return h;  //这仅仅是个handler的名字
+		}
+	}
 
-	var param = parseCobj(r[3]);  //把[里面]那段字符串翻译成对象数据结构
-	param['method'] = r[2];
+	var param = parseCobj(r[2]);  //把[里面]那段字符串翻译成对象数据结构
+	param['method'] = r[1];
 	
-	var handler = {
-		name: r[1],
-		info: param
-	};
-	
-	return handler;
+	return param;
 }
 
 function parseCobj(cstr){
