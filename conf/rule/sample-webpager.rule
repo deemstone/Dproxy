@@ -5,15 +5,7 @@
 #这个组里局域handler
 handler
 {
-	#惠华的静态
-	huihua-static  remote [ ip: 10.2.74.86 ]
-	#文韬的静态
-	wentao-static  remote [ ip: 10.2.74.173 ]
-	#继成的静态
-	jicheng-static  remote [ ip: 10.2.74.217; ]
-
 	opm  opm [root: /Users/Lijicheng/htdocs/xn.static]
-
 	jspro  local [folder: /Users/Lijicheng/htdocs/xn.static/jspro]
 }
 

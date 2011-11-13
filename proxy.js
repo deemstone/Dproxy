@@ -26,7 +26,7 @@ exports.server = http.createServer(function(request, response) {
 
 		//找到了匹配的handler
 		if(handler.method in methods){
-			var param = { pipe: pipe, match: ret.match };
+			var param = { pipe: pipe, match: ret.match, uri: ret.uri};
 			for (var property in handler) { //TODO: 工具库里面应该支持extend方法!!!
 				param[property] = handler[property];
 			}

@@ -434,7 +434,8 @@ exports.check = function(url){
 
 		return {
 			handler: handler,
-			match: r  //r就是上面匹配的match的结果,是个数组
+			match: r,  //r就是上面匹配的match的结果,是个数组
+			uri: uri  //rewrite之后的路径
 		};
 	}else{
 		return false; //没找到,返回false
