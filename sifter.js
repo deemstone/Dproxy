@@ -2,6 +2,7 @@
  * 管理路由列表
  * 负责列表的操作和url的匹配
  */
+var config = require('./settings.js').config;
 
 /* -- 规则表数据结构 -- */
 
@@ -352,17 +353,18 @@ var reloadGroup = exports.reloadGroup = function(groupname){
 //	});
 //})();
 
-//重写以后的初始化程序
-var gHandlers = {
-	'jicheng-static': {
-		method: 'remote',
-		ip: '10.2.16.123'
-	},
-	'chuanye-static': {
-		method: 'remote',
-		ip: '10.2.74.111'
-	}
-};
+//一些全局Handler
+//var gHandlers = {
+//	'jicheng-static': {
+//		method: 'remote',
+//		ip: '10.2.16.123'
+//	},
+//	'chuanye-static': {
+//		method: 'remote',
+//		ip: '10.2.74.111'
+//	}
+//};
+var gHandlers = config.handler || {};
 
 (function(){
 	//从磁盘上加载分组配置 遍历每个分组完成初始化

@@ -1,0 +1,16 @@
+#Dproxy的规则配置文件
+#放置一些全局handler,一些dproxy配置
+
+port 7070
+
+
+#这个组里局域handler
+handler
+{
+	#惠华的静态
+	huihua-static  remote [ ip: 10.2.74.86 ]
+	#文韬的静态
+	wentao-static  remote [ ip: 10.2.74.173 ]
+	#继成的静态
+	jicheng-static  remote [ ip: 10.2.74.217; ]
+}

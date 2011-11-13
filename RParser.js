@@ -7,6 +7,14 @@
 
 exports.parse = function(cStr){
 
+	var table = parseTable(cStr);
+	//console.log(table);
+	return buildGroup(table);
+};
+
+//解析成分块的字符串列表结构
+function parseTable(cStr){
+
 	//建立一些常用的正则对象
 	var RegExp_COMMENT = /\s*#.*/; //匹配所有注释(配置文件中的某一行) 可以用这个正则去掉所注释
 	var RegExp_BLOCK = /\s*(.*)\s*{\s*$/;  //检测是否是一个Block开头 {符号前后可以有多个空格,一定是本行的结束
@@ -80,9 +88,7 @@ if(process.platform.toLowerCase() == 'win32'){
 		return table;
 	}
 
-	var table = parseBlock();
-	//console.log(table);
-	return buildGroup(table);
+	return parseBlock(cStr);
 };
 
 //从原始的列表表格信息中建立分组的数据
@@ -97,14 +103,7 @@ function buildGroup(table){
 	
 	//obj.handlers = build_handlers(table.handler);
 	if( table['handler'] ){
-		var handlers = {};  //从table里建立出所有的分组局域handler
-		table['handler'].forEach(function(h){
-			h = h.split(/\s+/);
-			var name = h.shift();  //先把第一个字符串取出来,剩下一部分就是标准的handler格式了  method ++ [key: value ... ]
-			h = buildHandler( h.join(' ') );
-			handlers[ name ] = (typeof h == 'object' ? h : {method: 'undefined'}); //如果解析发现不是个标准的handler描述
-		});
-		group.handlers = handlers;
+		group.handlers = buildHandlerList(table['handler']);  //解析handler块
 	}
 
 	var sKeys = {'rewrite': '', 'default': ''};
@@ -204,6 +203,17 @@ function buildGroup(table){
 	return group;
 }
 
+//list是parseBlock中handler块
+function buildHandlerList(list){
+	var handlers = {};  //从table里建立出所有的分组局域handler
+	list.forEach(function(h){
+		h = h.split(/\s+/);
+		var name = h.shift();  //先把第一个字符串取出来,剩下一部分就是标准的handler格式了  method ++ [key: value ... ]
+		h = buildHandler( h.join(' ') );
+		handlers[ name ] = (typeof h == 'object' ? h : {method: 'undefined'}); //如果解析发现不是个标准的handler描述
+	});
+	return handlers;
+}
 //handler字串解析用到的正则表达式
 var RegExp_HANDLER = /^([^\s]+)\s+\[(.*)\]\s*$/ ;  //没有空格(之前的处理都给去掉了) + 字符串 + 空格 + 字符串 + [:;格式的字符串]
 //从格式中字符串提取handler信息
@@ -238,3 +248,7 @@ function parseCobj(cstr){
 
 	return obj;
 }
+
+//发布几个可以调用的工具函数
+exports.parseTable = parseTable;
+exports.buildHandlerList = buildHandlerList;
