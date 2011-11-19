@@ -1,10 +1,9 @@
 #Dproxy的规则配置文件
 #放置一些全局handler,一些dproxy配置
 
-port 7070
+port 7070  #代理服务器监听的端口号
 
-
-#这个组里局域handler
+#配置一些常用的全局handler
 handler
 {
 	#惠华的静态
