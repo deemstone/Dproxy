@@ -130,11 +130,18 @@ function buildGroup(table){
 			//提取出第一个字符串,判断是否是某项setting
 			l = l.split(/\s+/);
 			var name = l.shift();
-			if(name in sKeys){  //他是一条对该域名的配置
+			if(name == 'rewrite'){  //他是一条对该域名的配置
 				var setting = {
 					key: name,
 					param: l,
 					domain: scope
+				};
+				group.settings.push(setting);
+			}else if(name == 'default'){
+				var setting = {
+					   key: name,
+					   param: buildHandler(l.join(' ')),
+					   domain: scope
 				};
 				group.settings.push(setting);
 			}else{ //如果是普通的一条规则,添加到表中

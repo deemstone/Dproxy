@@ -418,7 +418,7 @@ exports.check = function(url){
 		var proxy_pass = routeList[url.host]['default'];
 		if(proxy_pass && proxy_pass[0]){  //也是取最上面一条
 			group = ruleGroups[ proxy_pass[0].groupname ];
-			handler = proxy_pass[0].param;
+			handler = proxy_pass[0].param; //配置文件里返回的都是数组,临时这么用吧
 		}
 	}
 	

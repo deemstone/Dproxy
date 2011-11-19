@@ -20,7 +20,7 @@ oneline
 s.xnimg.cn,a.xnimg.cn
 {
 	rewrite   ^/[ab]?([0-9]+)/(.*)   /$2  #重写url
-	#default  jicheng-static  #这个域的默认handler,相当于绑host
+	default  jicheng-static  #这个域的默认handler,相当于绑host
 
 	#这个域名下的规则列表
 	location{
