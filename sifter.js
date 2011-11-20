@@ -419,6 +419,7 @@ exports.check = function(url){
 		if(proxy_pass && proxy_pass[0]){  //也是取最上面一条
 			group = ruleGroups[ proxy_pass[0].groupname ];
 			handler = proxy_pass[0].param; //配置文件里返回的都是数组,临时这么用吧
+			r = [uri];  //local需要的这个参数 match 如果是default的话,match就是整个uri 
 		}
 	}
 	
