@@ -255,6 +255,9 @@ function client(host, port) {
 		params.push(["REQUEST_FILENAME", options.root + options.filename]);  //rewrite重写后的uri
 
 		//TODO: probably better to find a generic way of translating all http headers on request into PHP headers
+		if("referer" in req.headers){
+			params.push(["HTTP_REFERER", req.headers["referer"]]);
+		}
 		if("user-agent" in req.headers) {
 			params.push(["HTTP_USER_AGENT", req.headers["user-agent"]]);
 		}
@@ -281,6 +284,8 @@ function client(host, port) {
 		}
 
 		console.log2('<fast-cgi params>', params);
+		//console.log2('<fastcgi-req>', req.headers);
+
 		try {
 			connection.writer.writeHeader({
 				"version": fastcgi.constants.version,
