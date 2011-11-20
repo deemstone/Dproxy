@@ -7,13 +7,11 @@ var inherits = require("util").inherits;
 var HTTPParser = process.binding("http_parser").HTTPParser;
 
 /*
-
 * support X-SendFile
-
 */
 var gid = 0;
 
-function client(options) {
+function client(host, port) {
 	var _fastcgi = this;
 	var connection = new net.Stream();
 	var htparser = new HTTPParser("response");
@@ -24,27 +22,39 @@ function client(options) {
 		connections: 0
 	}
 	_fastcgi.stats = stats;
+
+	var port = port;  //fastcgi服务的端口号,这里是opm服务监听的端口号
+	var host = host;  //opm地址
+	//以上两行信息在connect()方法中用到
+	var shost,  //前端web服务器的ip
+		sport,
+		sname,
+		keepalive = false,
+		sredirectstatus = null;
+
+	
+	this.setParams = function(opts){
+		shost = opts.server.host || "127.0.0.1";  //webServer Info
+		sport = opts.server.port || 80;
+		sname = opts.server.name || "localhost";
+
+		connection.params = [
+			["DOCUMENT_ROOT", opts.root],
+			["SERVER_PROTOCOL", "HTTP/1.1"],
+			["GATEWAY_INTERFACE", "CGI/1.1"],
+			["SERVER_SOFTWARE", "node.js"],
+			["SERVER_ADDR", shost.toString()],
+			["SERVER_PORT", sport.toString()],
+			["SERVER_NAME", "_"]
+		];
+		options = opts;
+	};
+
 	var phprx = new RegExp("Status: (\\d{3}) (.*?)\\r\\n");
-	var port = options.port || "/tmp/php.sock";
-	var host = options.host;
-	var keepalive = options.keepAlive || false;
-	var shost = options.server.host || "127.0.0.1";
-	var sport = options.server.port || 80;
-	var sname = options.server.name || "localhost";
-	var sredirectstatus = options.redirectStatus || null;
 	var _current = null;
 	
 	connection.setNoDelay(true);
 	connection.setTimeout(0);
-	connection.params = [
-		["DOCUMENT_ROOT", options.root || "/var/www/html"],
-		["SERVER_PROTOCOL", "HTTP/1.1"],
-		["GATEWAY_INTERFACE", "CGI/1.1"],
-		["SERVER_SOFTWARE", "node.js"],
-		["SERVER_ADDR", shost.toString()],
-		["SERVER_PORT", sport.toString()],
-		["SERVER_NAME", "_"]
-	];
 	connection.writer = new fastcgi.writer();
 	connection.parser = new fastcgi.parser();
 	connection.parser.encoding = "binary";
@@ -235,14 +245,14 @@ function client(options) {
 		params.push(["REMOTE_ADDR", req.connection.remoteAddress]);
 		params.push(["REMOTE_PORT", req.connection.remotePort.toString()]);
 		req.url = url.parse(req.url);
-		params.push(["SCRIPT_FILENAME", options.root + req.url.pathname]);
+		params.push(["SCRIPT_FILENAME", options.root + options.filename]);
 		params.push(["QUERY_STRING", req.url.query || ""]);
 		params.push(["REQUEST_METHOD", req.method]);
 		params.push(["SCRIPT_NAME", req.url.pathname]);
 		params.push(["REQUEST_URI", req.url.pathname + (req.url.query || "")]);
 		params.push(["DOCUMENT_URI", req.url.pathname]);
 
-		params.push(["REQUEST_FILENAME", options.root + req.url.pathname]);
+		params.push(["REQUEST_FILENAME", options.root + options.filename]);  //rewrite重写后的uri
 
 		//TODO: probably better to find a generic way of translating all http headers on request into PHP headers
 		if("user-agent" in req.headers) {
@@ -269,6 +279,8 @@ function client(options) {
 		if("content-length" in req.headers) {
 			params.push(["CONTENT_LENGTH", req.headers["content-length"]]);
 		}
+
+		console.log2('<fast-cgi params>', params);
 		try {
 			connection.writer.writeHeader({
 				"version": fastcgi.constants.version,
@@ -371,27 +383,50 @@ function client(options) {
 }
 inherits(client, events.EventEmitter);
 
-function agent(nc, options) {
+function agent(nc) {
 	var _agent = this;
-	var i = nc;
-	var current = 0;
-	var clients = [];
-	this.clients = clients;
-	while(i--) {
-		var c = new client(options);
-		c.on("error", function(err) {
-			_agent.emit("error", err);
-		});
-		clients.push(c);
+	this.pool = {};  // key -> clients
+
+	function createClients(ip, port){
+		var i = nc;
+		var worker = {
+			current : 0,
+			clients : []
+		};
+
+		while(i--) {
+			var c = new client(ip, port);  //options参数改为每次请求的时候传入
+			c.on("error", function(err) {
+				_agent.emit("error", err);
+			});
+			worker.clients.push(c);
+		}
+		return worker;
 	}
-	this.request = function(req, resp, cb) {
-		var client = clients[current];
+
+	//现在改成options每次都由opm模块传入
+	this.request = function(req, resp, options, cb) {
+		
+		//首先判断指向的这个ip-port是否已经有workers了
+		var host = options.host;
+		var port = options.port;
+
+		var key = host +'-'+ port;
+		if(!this.pool[key]){
+			this.pool[key] = createClients(host, port);
+		}
+
+		var worker = this.pool[key];
+		var client = worker.clients[worker.current];
+
+		client.setParams(options);  //手动配置client这次请求的各种参数
 		client.request(req, resp, cb);
-		if(current == nc - 1) {
-			current = 0;
+
+		if(worker.current == nc - 1) {
+			worker.current = 0;
 		}
 		else {
-			current++;
+			worker.current++;
 		}
 	}
 }

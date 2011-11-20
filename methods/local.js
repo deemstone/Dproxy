@@ -8,6 +8,9 @@ exports.serve = function(req, res, vector){
 	if(vector.file){
 		var filepath = vector.file;
 
+	}else if(vector.root){
+		var apath = vector.uri.replace(/\?.*$/, '');  //去掉末尾的?查询字串
+		var filepath = path.join(vector.root, apath);
 	}else if(vector.folder){
 		var url = req.url;
 		var relpath = url.substr( url.indexOf(match) );  //url里面被*号匹配的直到串尾的字串(相对路径)
@@ -20,13 +23,6 @@ exports.serve = function(req, res, vector){
 		//直接404!!
 	}
 	console.log2('local要取这个本地文件', filepath);
-	//var local = vector.argument;
-	//if(local[ local.length-1 ] == '/'){  //目录
-	//	var filepath = vector.path || '';  //handler的路径 + 请求过来url后面一段路径
-	//	filepath = local + filepath;
-	//}else{  //直接返回这个文件
-	//	var filepath = local;
-	//}
 
 	var headers = {
 		'Cache-Control': 'no-cache',

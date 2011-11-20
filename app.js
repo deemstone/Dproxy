@@ -25,7 +25,7 @@ process.on('uncaughtException', function(err)
 });
 
 //log工具
-var _log_level = 0;
+var _log_level = 2;
 console.log1 = function(){
 	if(_log_level < 1) return;
 	console.info.apply(console, arguments)
