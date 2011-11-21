@@ -17,7 +17,7 @@ exports.command = function(query, processer){
 //第二个参数可以是cmd的param
 //第三个参数可以是cmd的appendix
 exports.request = function(query, callback){
-	console.log('service接收到请求:', arguments[0]);
+	console.log1('service接收到请求:', arguments[0]);
 	var cmds = query.split('/').slice(1);
 	var cmd = {
 		cmds: cmds

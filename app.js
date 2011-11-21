@@ -11,6 +11,15 @@ proxy.shutdown = function(){
 	process.exit(0);
 };
 
+//让服务器开始监听PORT端口
+try{
+	proxy.server.listen(PORT);
+	console.log('--> : Proxy Server listening port '+ PORT +' !!');
+}catch(e){
+	console.log('Error: Proxy Server Cant\'t Listen to PORT '+ PORT +'!');
+	process.exit(1);
+}
+
 //把所有没处理的异常信息记录在文件里
 var fs = require('fs');
 var logFile = fs.openSync('./doc/error_log.txt', 'a');
@@ -75,10 +84,3 @@ if(socketfile){
 	cli.init(proxy);
 }
 
-try{
-	proxy.server.listen(PORT);
-	console.log('--> : Proxy Server listening port '+ PORT +' !!');
-}catch(e){
-	console.log('Error: Proxy Server Cant\'t Listen to PORT '+ PORT +'!');
-	process.exit(1);
-}

@@ -55,6 +55,25 @@ var msgReceiver = function(m){
 	}
 };
 
+//取groups列表用于自动补全功能
+//把proxy的异步调用转换成同步返回的方法
+function auto_groups(){
+	var ret = null;
+	proxy.request('/sifter/group/list', function(rs){
+		var ls = rs.appendix;
+		var gs = [];
+		for(var g in ls){
+			gs.push( g );
+		}
+		ret = gs;  //传递给外层函数
+	});
+
+	if(ret == null){
+		console.log1('取所有分组列表,预期的同步执行,现在不好用了!!!');
+	}
+	return ret;
+}
+
 //直接向shell输出的类型
 shell.command('status', function(args, next){
 	//打印系统运行状况
@@ -98,7 +117,7 @@ shell.command('up', function(args, next){
 	proxy.request('/sifter/group/enable', args[0], function(rs, err){
 		next();
 	});
-});
+}, auto_groups);
 //停用一个分组
 shell.command('down', function(args, next){
 	if(!args.length){ //必须指定分组名
@@ -110,7 +129,7 @@ shell.command('down', function(args, next){
 		if(err) shell.print(err);
 		next();
 	});
-});
+}, auto_groups);
 //查看规则列表
 shell.command('ls', function(args, next){
 	//处理参数args
@@ -140,7 +159,7 @@ shell.command('ls', function(args, next){
 			next();
 		});
 	}
-});
+}, auto_groups);
 //开启滚动
 shell.command('roll', function(args){
 	//打开shell的即时模式
