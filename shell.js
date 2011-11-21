@@ -29,6 +29,13 @@ function prompt(){
 
 //开始shell的命令循环
 exports.start = function(){
+	//缓存自动补全的列表
+	//如果用户连续两次按tab键的cmd是一样的,不用再调用函数取列表了,直接用这个缓存的结果
+	var _auto = {
+		cmd: null,
+		list: null
+	};
+
 	rl = readline.createInterface(process.stdin, process.stdout, 
 		//自动补全的逻辑
 		function(p){  //p是用户输入的字符串(包括前后的空格)
@@ -53,7 +60,14 @@ exports.start = function(){
 			if(args[0] in commands){
 				var auto = autoComplete[ args[0] ];
 				if( auto ){  //调用该命令的补全逻辑
-					var list = auto() || [];
+					//缓存逻辑
+					if(_auto.cmd == args[0]){
+						var list = _auto.list;
+					}else{
+						var list = auto() || [];
+						_auto.cmd = args[0];  //缓存起来
+						_auto.list = list;
+					}
 					var pre = args[0]+ ' ';
 					return [filter(args[1], list, pre, ''), p];
 					//这个数据结构的逻辑是: 在返回的列表中每个结果 从开头去掉p一段之后剩下的一部分循环显示
