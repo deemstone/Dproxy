@@ -13,11 +13,12 @@ agent.on("error", function(err) {
 
 exports.serve = function (req, res, vector) {
 	console.log1('new opm request', vector);
+	var apath = vector.uri.replace(/\?.*$/, '');  //去掉末尾的?查询字串
 	var options = {
 		port: vector.port || '8080',
 		host: vector.ip || '127.0.0.1',
 		root: vector.root,
-		filename: vector.uri,  //要重写后的uri
+		filename: apath,  //要重写后的文件路径
 		server: {  //webServer的相关信息
 			host: "127.0.0.1",
 			port: '7070'
