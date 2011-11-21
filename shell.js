@@ -67,22 +67,40 @@ exports.start = function(){
 		}
 	);
 //TODO: 命令行Tab自动补全
+	var _rq = [];　//记录调用命令的顺序,用来防止next()循环调用
 	rl.on('line', function(line) {
+		_rq = [];  //每次手动输入命令为起点,把_rq置空
+
 		var args = line.trim().split(' ');
 		var cname = args.shift();
+		execute(cname, args);  //执行这个命令
+	});
 
+	//执行一个命令
+	function execute(cname, args){
 		if( !(cname in commands) ){  //没有这样的命令,给用户提示
 			print('没有这样的命令: ' + cname );
 			next();
 			return;
 		} 
+		var args = args || [];  //args可以传空
 		//调用对应的processer
-		commands[cname](args, next);
-	});
+		if(_rq.indexOf(cname) < 0){
+			_rq.push(cname);  //记录命令调用的顺序
+			commands[cname](args, next);
+		}else{
+			console.log1('命令循环调用了,到此为止: ', _rq);
+			next();
+		}
+	}
 
 	//一条命令执行结束,开始等待下一条
-	function next(){
-		prompt();
+	function next(nc, args){  //可以指定 接着执行下一个命令
+		if(!nc){
+			prompt();
+		}else{
+			execute(nc, args);
+		}
 	};
 
 	prompt();

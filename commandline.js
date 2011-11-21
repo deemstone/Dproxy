@@ -115,7 +115,7 @@ shell.command('up', function(args, next){
 		return;
 	}
 	proxy.request('/sifter/group/enable', args[0], function(rs, err){
-		next();
+		next('groups');
 	});
 }, auto_groups);
 //停用一个分组
@@ -127,7 +127,7 @@ shell.command('down', function(args, next){
 	}
 	proxy.request('/sifter/group/disable', args[0], function(rs, err){
 		if(err) shell.print(err);
-		next();
+		next('groups');
 	});
 }, auto_groups);
 //查看规则列表
