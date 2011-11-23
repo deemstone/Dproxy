@@ -44,15 +44,15 @@ exports.serve = function(req, res, vector){
 
 //{{错误处理
 	//远端服务器错误
-	proxy_request.on('error', function(e){
+	proxy_request.on('error', function(){
 		res.end();
-		pipe.write('error', e );
+		pipe.write('error', {message: '服务器返回意外中止!!'} );
 	});
 
 	//客户端手动abort
-	req.on('close', function(e){
+	req.on('close', function(){
 		proxy_request.abort();
-		pipe.write('error', e );
+		pipe.write('error', {message: '客户端中止了请求!!'} );
 	});
 //}}End
 

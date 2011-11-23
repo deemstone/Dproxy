@@ -27,59 +27,58 @@ function prompt(){
 	rl.prompt();
 }
 
-//开始shell的命令循环
-exports.start = function(){
-	//缓存自动补全的列表
-	//如果用户连续两次按tab键的cmd是一样的,不用再调用函数取列表了,直接用这个缓存的结果
-	var _auto = {
-		cmd: null,
-		list: null
-	};
-
-	rl = readline.createInterface(process.stdin, process.stdout, 
-		//自动补全的逻辑
-		function(p){  //p是用户输入的字符串(包括前后的空格)
-
-			//在一个列表中过滤出以p开头的所有字串
-			function filter(p, arr, pre, post){
-				var ret = [];
-				var p = p || '';
-				var pre = pre || '';
-				var arr = arr.slice(0);  //拷贝一份出来处理
-				var c;
-				while(c = arr.shift()){
-					if( c.indexOf(p) == 0){
-						ret.push(pre + c + post);  //补全之后加个空格
-					}
-				}
-				//console.log2('匹配到的列表: ', ret);
-				return ret;
-			}
-
-			var args = p.trim().split(/\s+/);
-			if(args[0] in commands){
-				var auto = autoComplete[ args[0] ];
-				if( auto ){  //调用该命令的补全逻辑
-					//缓存逻辑
-					if(_auto.cmd == args[0]){
-						var list = _auto.list;
-					}else{
-						var list = auto() || [];
-						_auto.cmd = args[0];  //缓存起来
-						_auto.list = list;
-					}
-					var pre = args[0]+ ' ';
-					return [filter(args[1], list, pre, ''), p];
-					//这个数据结构的逻辑是: 在返回的列表中每个结果 从开头去掉p一段之后剩下的一部分循环显示
-				}else{
-					return null;
-				}
-			}else{
-				//console.log(commands_list);
-				return [ filter(p, commands_list, '', ' '), p]; 
+//缓存自动补全的列表
+//如果用户连续两次按tab键的cmd是一样的,不用再调用函数取列表了,直接用这个缓存的结果
+var _auto = {
+	cmd: null,
+	list: null
+};
+//自动补全的逻辑
+function autoCompleter(p){  //p是用户输入的字符串(包括前后的空格)
+	//在一个列表中过滤出以p开头的所有字串
+	function filter(p, arr, pre, post){
+		var ret = [];
+		var p = p || '';
+		var pre = pre || '';
+		var arr = arr.slice(0);  //拷贝一份出来处理
+		var c;
+		while(c = arr.shift()){
+			if( c.indexOf(p) == 0){
+				ret.push(pre + c + post);  //补全之后加个空格
 			}
 		}
-	);
+		//console.log2('匹配到的列表: ', ret);
+		return ret;
+	}
+
+	var args = p.trim().split(/\s+/);
+	if(args[0] in commands){
+		var auto = autoComplete[ args[0] ];
+		if( auto ){  //调用该命令的补全逻辑
+			//缓存逻辑
+			if(_auto.cmd == args[0]){
+				var list = _auto.list;
+			}else{
+				var list = auto() || [];
+				_auto.cmd = args[0];  //缓存起来
+				_auto.list = list;
+			}
+			var pre = args[0]+ ' ';
+			return [filter(args[1], list, pre, ''), p];
+			//这个数据结构的逻辑是: 在返回的列表中每个结果 从开头去掉p一段之后剩下的一部分循环显示
+		}else{
+			return null;
+		}
+	}else{
+		//console.log(commands_list);
+		return [ filter(p, commands_list, '', ' '), p]; 
+	}
+}
+
+//开始shell的命令循环
+exports.start = function(){
+
+	rl = readline.createInterface(process.stdin, process.stdout, autoCompleter);
 //TODO: 命令行Tab自动补全
 	var _rq = [];　//记录调用命令的顺序,用来防止next()循环调用
 	rl.on('line', function(line) {
@@ -143,8 +142,9 @@ exports.instantOff = function(){
 	if(instantCallback) instantCallback();
 
 	process.stdin.removeListener('keypress', onKeypress);
+	tty.setRawMode(false);  //先把模式设置回来,再开启readline
 	rl.resume();
-	tty.setRawMode(false);
+	rl.line = '';  //把instant模式下的所有输入清空
 	console.log('Instant OFF');
 	prompt();
 };

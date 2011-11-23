@@ -63,19 +63,19 @@ exports.serve = function(req, res, pipe){
 
 //{{错误处理
 	//远端服务器错误
-	p_request.on('error', function(e){
+	p_request.on('error', function(){
 		res.end();
 		//throw new Error('<ERROR-proxy> :'+ req.url, e);
 		//这里不能直接抛异常,会导致当前的socket不能正常关闭
 		//然后积累多了就会报错: (node) Hit max file limit. Increase "ulimit - n"
-		pipe.write('error', e );
+		pipe.write('error', {message: '服务器返回意外中止!!'}  );
 	});
 
 	//客户端手动abort
-	req.on('close', function(e){
+	req.on('close', function(){
 		p_request.abort();
 		//throw new Error('<ERROR-client> :'+ req.url, e);
-		pipe.write('error', e );
+		pipe.write('error', {message: '客户端中止了请求!!'} );
 	});
 //}}End
 }
