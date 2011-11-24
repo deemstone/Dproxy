@@ -8,7 +8,7 @@ var reqs = 0;
 var resps = 0;
 
 agent.on("error", function(err) {
-	console.log1("client.error", err);
+	console.log1("opm-fastcgi client.error", err);
 });
 
 exports.serve = function (req, res, vector) {
@@ -25,6 +25,6 @@ exports.serve = function (req, res, vector) {
 		}
 	};
 	agent.request(req, res, options, function(err, response) {
-		if(err) console.log1(err);
+		if(err) console.log1('opm返回过程中出错: ', err);
 	});
 };

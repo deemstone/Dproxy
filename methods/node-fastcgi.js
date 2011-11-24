@@ -5,6 +5,8 @@ var events = require("events");
 var url = require("url");
 var inherits = require("util").inherits;
 var HTTPParser = process.binding("http_parser").HTTPParser;
+var fs = require('fs');
+var __i = 0;
 
 /*
 * support X-SendFile
@@ -61,6 +63,7 @@ function client(host, port) {
 	connection.writer.encoding = "binary";
 	
 	htparser.onHeaderField = function (b, start, len) {
+		//console.log('htparser Header有输出!!!!!! ');
 		var slice = b.toString('ascii', start, start+len).toLowerCase();
 		if (htparser.value != undefined) {
 			var dest = _current.fcgi.headers;
@@ -113,6 +116,7 @@ function client(host, port) {
 	}
 
 	htparser.onBody = function(buffer, start, len) {
+		//console.log('htparser也有输出!!!! ');
 		_current.resp.write(buffer.slice(start, start + len));
 	}
 	
@@ -121,57 +125,64 @@ function client(host, port) {
 	}
 	
 	connection.parser.onBody = function(buffer, start, len) {
+		//console.log(start, len);
 		//console.log(buffer.toString("utf8", start, start + len));
 		if(!_current.fcgi.body) {
 			htparser.reinitialize("response");
 			_current.fcgi.headers = {};
-			var status = buffer.slice(start, 100).toString();
-			var match = status.match(phprx);
-			if(match) {
-				var header = match[0];
-				var buff = buffer.slice(start + header.length, start + len);
-				status = new Buffer("HTTP/1.1 " + match[1] + " " + match[2] + "\r\n");
-				try {
-					var parsed = htparser.execute(status, 0, status.length);
-					var parsed = htparser.execute(buff, 0, buff.length);
-					if(parsed.bytesParsed) {
-						_current.resp.write(buff.slice(start + parsed.bytesParsed, start + len));
-					}
-				}
-				catch(ex) {
-					_current.cb(ex);
-				}
-			}
-			else {
+			//var status = buffer.slice(start, 100).toString();
+			//var match = status.match(phprx);
+			//if(match) {
+			//	var header = match[0];
+			//	var buff = buffer.slice(start + header.length, start + len);
+			//	status = new Buffer("HTTP/1.1 " + match[1] + " " + match[2] + "\r\n");
+			//	try {
+			//		var parsed = htparser.execute(status, 0, status.length);
+			//		var parsed = htparser.execute(buff, 0, buff.length);
+			//		if(parsed.bytesParsed) {
+			//			_current.resp.write(buff.slice(start + parsed.bytesParsed, start + len));
+			//		}
+			//	}
+			//	catch(ex) {
+			//		_current.cb(ex);
+			//	}
+			//}
+			//else {
 				status = new Buffer("HTTP/1.1 200 OK\r\n");
 				try {
 					var parsed = htparser.execute(status, 0, status.length);
 					var parsed = htparser.execute(buffer, start, len);
 					if(parsed.bytesParsed) {
+						//console.log('htparser也有输出!!!! -- 11111');
 						_current.resp.write(buffer.slice(start + parsed.bytesParsed, start + len));
 					}
 				}
 				catch(ex) {
 					_current.cb(ex);
 				}
-			}
+			//}
 			_current.fcgi.body = true;
 		}
 		else {
 			try {
 				var parsed = htparser.execute(buffer, start, len);
-				if(parsed.message == "Parse Error" && ("bytesParsed" in parsed)) {
-					_current.resp.write(buffer.slice(start + parsed.bytesParsed, start + len));
+				if(parsed instanceof Error) {
+				//if(parsed.message == "Parse Error" && ("bytesParsed" in parsed)) {
+				  //console.log('htparser也有输出!!!! -- 22222');
+				  //_current.resp.write(buffer.slice(start + parsed.bytesParsed, start + len));
+				  var output = new Buffer(len - parsed.bytesParsed);  //为了解决那个代码乱续的问题,buffer这个变量会重用的,所以必须copy出来用于输出
+				  buffer.copy(output, 0, start + parsed.bytesParsed, start + len);  //更本质的问题是,这两个stream的读写(fastcgi连接和web服务连接)是异步的
+				  _current.resp.write(output);
 				}
 			}
-			catch(ex) {
+			catch(ex){
 				_current.cb(ex);
 			}
 		}
 	}
 		
 	connection.parser.onRecord = function(record) {
-		//console.log(record);
+		//console.log('record : ', record);
 		var recordId = parseInt(record.header.recordId);
 		var request = requests[recordId];
 		switch(record.header.type) {
@@ -359,6 +370,7 @@ function client(host, port) {
 			}
 		}
 		catch(ex) {
+		console.log('fastcgi返回错误:', ex);
 			connection.end();
 			request.cb(ex);
 		}
