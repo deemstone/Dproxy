@@ -25,6 +25,11 @@ exports.serve = function (req, res, vector) {
 		}
 	};
 	agent.request(req, res, options, function(err, response) {
-		if(err) console.log1('opm返回过程中出错: ', err);
+		if(err){
+			console.log1('opm返回过程中出错: ', err);
+			vector.pipe.write('error', err);
+		}else{
+			vector.pipe.write('response', response);
+		}
 	});
 };

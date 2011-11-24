@@ -37,7 +37,17 @@ var msgReceiver = function(m){
 				shell.print( '['+ m.param +']('+ m.appendix.method +'|'+ m.appendix.handler.method +') --> '+ m.appendix.url);
 				break;
 			case 'response':
-				shell.print( '['+ m.param +'] - '+ m.appendix.status +' <-- '+ (m.appendix.file || m.appendix.headers['content-type']) );  //local - file | remote - headers
+				var info = false;
+				var ms = m.appendix;
+				if(ms.file){
+					info = m.appendix.file;
+				}else if(ms.headers){
+					info =  ms.headers['content-type'];
+				}else if(ms.opm){
+					info = ms.opm['host'] +':'+ ms.opm['port'];
+				}
+				if(info)
+					shell.print( '['+ m.param +'] - '+ m.appendix.status +' <-- '+ info );  //local - file | remote - headers
 				break;
 			case 'process':
 				shell.print( '['+ m.param +'] -~~~- '+ m.appendix.handler);

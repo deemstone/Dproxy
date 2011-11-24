@@ -149,6 +149,7 @@ function client(host, port) {
 			//}
 			//else {
 				status = new Buffer("HTTP/1.1 200 OK\r\n");
+				_current.cb(false, {status: 200, opm: {host:host, port:port, root: options.root}});  //TODO: 一定要找到response的事件!!临时发个...
 				try {
 					var parsed = htparser.execute(status, 0, status.length);
 					var parsed = htparser.execute(buffer, start, len);

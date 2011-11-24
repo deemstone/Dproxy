@@ -38,7 +38,7 @@ module.exports.write = function(message){
 	if(message instanceof Object){
 		message = self.buildMsg( message );
 	}
-	console.log(message);
+	console.log('IPCAgent 非标准消息结构: ', message);
 };
 
 /*
