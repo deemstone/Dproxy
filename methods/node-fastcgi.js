@@ -35,22 +35,12 @@ function client(host, port) {
 		sredirectstatus = null;
 
 	
-	this.setParams = function(opts){
-		shost = opts.server.host || "127.0.0.1";  //webServer Info
-		sport = opts.server.port || 80;
-		sname = opts.server.name || "localhost";
-
-		connection.params = [
-			["DOCUMENT_ROOT", opts.root],
-			["SERVER_PROTOCOL", "HTTP/1.1"],
-			["GATEWAY_INTERFACE", "CGI/1.1"],
-			["SERVER_SOFTWARE", "node.js"],
-			["SERVER_ADDR", shost.toString()],
-			["SERVER_PORT", sport.toString()],
-			["SERVER_NAME", "_"]
-		];
-		options = opts;
-	};
+	connection.params = [
+		["SERVER_PROTOCOL", "HTTP/1.1"],
+		["GATEWAY_INTERFACE", "CGI/1.1"],
+		["SERVER_SOFTWARE", "node.js"],
+		["SERVER_NAME", "_"]
+	];
 
 	var phprx = new RegExp("Status: (\\d{3}) (.*?)\\r\\n");
 	var _current = null;
@@ -149,7 +139,8 @@ function client(host, port) {
 			//}
 			//else {
 				status = new Buffer("HTTP/1.1 200 OK\r\n");
-				_current.cb(false, {status: 200, opm: {host:host, port:port, root: options.root}});  //TODO: 一定要找到response的事件!!临时发个...
+				var opts = connection.options
+				_current.cb(false, {status: 200, opm: {host:host, port:port, root: opts.root}});  //TODO: 一定要找到response的事件!!临时发个...
 				try {
 					var parsed = htparser.execute(status, 0, status.length);
 					var parsed = htparser.execute(buffer, start, len);
@@ -252,11 +243,21 @@ function client(host, port) {
 	function next() {
 		var request = queue.shift();
 		var req = request.req;
+		var options = req.options;  //每个req都伴随一个options,每次请求都不一样
+		
+		connection.options = options;
+		req.url = url.parse(req.url);
+		shost = options.server.host || "127.0.0.1";  //webServer Info
+		sport = options.server.port || 80;
+		sname = options.server.name || "localhost";
+
 		req.resume();
 		var params = connection.params.slice(0);
+		params.push(["DOCUMENT_ROOT", options.root]);
+		params.push(["SERVER_ADDR", shost.toString()]);
+		params.push(["SERVER_PORT", sport.toString()]);
 		params.push(["REMOTE_ADDR", req.connection.remoteAddress]);
 		params.push(["REMOTE_PORT", req.connection.remotePort.toString()]);
-		req.url = url.parse(req.url);
 		params.push(["SCRIPT_FILENAME", options.root + options.filename]);
 		params.push(["QUERY_STRING", req.url.query || ""]);
 		params.push(["REQUEST_METHOD", req.method]);
@@ -371,7 +372,7 @@ function client(host, port) {
 			}
 		}
 		catch(ex) {
-		console.log('fastcgi返回错误:', ex);
+			console.log('fastcgi返回错误:', ex);
 			connection.end();
 			request.cb(ex);
 		}
@@ -437,8 +438,10 @@ function agent(nc) {
 		var worker = this.pool[key];
 		var client = worker.clients[worker.current];
 
-		client.setParams(options);  //手动配置client这次请求的各种参数
+		//client.setParams(options);  //手动配置client这次请求的各种参数
+		req.options = options;
 		client.request(req, resp, cb);
+		//console.log(req);
 
 		if(worker.current == nc - 1) {
 			worker.current = 0;
