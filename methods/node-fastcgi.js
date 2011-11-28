@@ -73,6 +73,7 @@ function client(host, port) {
 	};
 	
 	htparser.onHeaderValue = function (b, start, len) {
+		//console.log('htparser Header Value有输出!!!!!! ');
 		var slice = b.toString('ascii', start, start+len);
 		if (htparser.value) {
 			htparser.value += slice;
@@ -82,6 +83,7 @@ function client(host, port) {
 	};
 
 	htparser.onHeadersComplete = function (info) {
+		//console.log('htparser Header Complete有输出!!!!!! ');
 		if (htparser.field && (htparser.value != undefined)) {
 			var dest = _current.fcgi.headers;
 			if (htparser.field in dest) {
@@ -115,8 +117,6 @@ function client(host, port) {
 	}
 	
 	connection.parser.onBody = function(buffer, start, len) {
-		//console.log(start, len);
-		//console.log(buffer.toString("utf8", start, start + len));
 		if(!_current.fcgi.body) {
 			htparser.reinitialize("response");
 			_current.fcgi.headers = {};
@@ -138,14 +138,22 @@ function client(host, port) {
 			//	}
 			//}
 			//else {
-				status = new Buffer("HTTP/1.1 200 OK\r\n");
+				var header = new Buffer("HTTP/1.1 200 OK\r\n");  //!!!这个是临时解决  如果没有这个, 状态码那部分buffer会返回给浏览器....
+				var responseText = buffer.toString("utf8", start, start + len);
+				//TODO: 解析成map
+				//临时只把状态码取出来  临时解决!!!!
+				var regex = /Status: (\d+)/; 
+				var r = responseText.match(regex)[1];
+				//console.log(r);
+				var status = r || 500;
+				_current.resp.writeHeader(status);
+
 				var opts = connection.options
-				_current.cb(false, {status: 200, opm: {host:host, port:port, root: opts.root}});  //TODO: 一定要找到response的事件!!临时发个...
+				_current.cb(false, {status: status, opm: {host:host, port:port, root: opts.root}});  //TODO: 一定要找到response的事件!!临时发个...
 				try {
-					var parsed = htparser.execute(status, 0, status.length);
+					var parsed = htparser.execute(header, 0, status.length);
 					var parsed = htparser.execute(buffer, start, len);
 					if(parsed.bytesParsed) {
-						//console.log('htparser也有输出!!!! -- 11111');
 						_current.resp.write(buffer.slice(start + parsed.bytesParsed, start + len));
 					}
 				}
