@@ -219,6 +219,7 @@ function client(host, port) {
 	};
 	
 	connection.addListener("connect", function() {
+		connection.fd = true;  //标识这个socket处于连接状态
 		stats.connections++;
 		if(queue.length > 0) {
 			next();
@@ -230,12 +231,14 @@ function client(host, port) {
 	});
 	
 	connection.addListener("end", function() {
+		connection.fd = false;  //标识这个socket没有连接
 		if(queue.length > 0) {
 			process.nextTick(_fastcgi.connect);
 		}
 	});
 	
 	connection.addListener("error", function(err) {
+	//TODO: 稳定性,连接出错应该同时断开浏览器的连接
 		_fastcgi.emit("error", err);
 		connection.end();
 	});
@@ -399,13 +402,14 @@ function client(host, port) {
 		if(reqid == 65535) {
 			reqid = 0;
 		}
-		if(!connection.fd) {
+		if(!connection.fd) {  //fd这个属性在新版的Node中没有了...手动加了一个
 			req.pause();
 			_fastcgi.connect();
 		}
-		else if(keepalive && queue.length == 1){
-			next();
-		}
+		//queue长度为1时,也可能正在处理前一个一个请求
+		//else if(keepalive && queue.length == 1){
+		//	next();
+		//}
 	}
 }
 inherits(client, events.EventEmitter);

@@ -23,6 +23,7 @@ exports.server = http.createServer(function(request, response) {
 	var ret = sifter.check(request.url);
 	if(ret){
 		var handler = ret.handler;
+		//TODO: 如果配置文件里没设置这个handler,取到的就是undefined,下面程序就报错!!
 
 		//找到了匹配的handler
 		if(handler.method in methods){
