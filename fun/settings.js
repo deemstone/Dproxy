@@ -6,12 +6,12 @@
  */
 var path = require('path');
 var fs = require('fs');
-var Config = require('./RParser.js');
+var Config = require('../lib/RParser.js');
 
 var config = {};  //配置文件的数据结构
 
 var dir_base = __dirname;  //程序根目录
-var filepath = path.resolve(dir_base, './conf/dproxy.conf');
+var filepath = path.resolve(dir_base, '../conf/dproxy.conf');
 if(path.existsSync(filepath)){
 	//console.log2('settings准备读取dproxy.conf文件');
 	var content = fs.readFileSync(filepath, "utf8");

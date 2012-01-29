@@ -235,10 +235,10 @@ function isEnabled(group){
 /* ---------- 配置文件处理和初始化 ------------- */
 var fs = require('fs');
 var path = require('path');
-var Config = require('./RParser.js');  //配置文件解析器
+var Config = require('../lib/RParser.js');  //配置文件解析器
 
 //定义一些常用目录
-var dir_base = __dirname;  //程序根目录
+var dir_base = path.join(__dirname, '../');  //程序根目录
 var dir_conf = path.join(dir_base, '/conf');
 var dir_rule = path.join(dir_conf, '/rule');
 var fileList = [];

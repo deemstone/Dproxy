@@ -2,7 +2,7 @@
  * 命令行UI程序
  * 依赖shell
  */
-var shell = require('./shell.js');
+var shell = require('../lib/shell.js');
 
 //由app.js传进来的proxy实例
 var proxy;

@@ -1,0 +1,42 @@
+{
+  "name": "dproxy",
+  "description": "一个类似Fiddler的Web调试代理.A proxy designed for web developing, works like Fiddler",
+  "keywords": [
+    "web develop",
+    "web debug",
+    "proxy"
+  ],
+  "version": "0.7",
+  "homepage": "http://github.com/deemstone/Dproxy",
+  "author": "Deemstone Li <deemstone@gmail.com> (http://blog.cooer.net)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deemstone/Dproxy"
+  },
+  "bugs": {
+    "email": "deemstone@gmail.com",
+    "url": "http://github.com/deemstone/Dproxy/issues"
+  },
+  "directories": {
+    "doc": "./doc",
+    "lib": "./lib",
+    "bin": "./bin"
+  },
+  "main": "./fun/dproxy-cli.js",
+  "bin": "./fun/dproxy-cli.js",
+  "dependencies": {
+  },
+  "bundleDependencies": [
+    "fastcgi"
+  ],
+  "devDependencies": {
+  },
+  "engines": {
+    "node": "0.6 || 0.7 || 0.8",
+    "npm": "1"
+  },
+  "scripts": {
+    "test": "node ./test/run.js",
+  }
+}
+

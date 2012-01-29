@@ -22,7 +22,7 @@ try{
 
 //把所有没处理的异常信息记录在文件里
 var fs = require('fs');
-var logFile = fs.openSync('./doc/error_log.txt', 'a');
+var logFile = fs.openSync('./doc/error_log.txt', 'a'); //TODO: log路径改到 /log/error_log.txt
 //处理各种错误
 process.on('uncaughtException', function(err)
 {

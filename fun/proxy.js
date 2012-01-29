@@ -2,15 +2,15 @@ var http = require('http');
 var sys  = require('sys');
 
 var sifter = require('./sifter.js');
-var online = require('./methods/online.js');  //这是整个过滤流程的最后一步
-var roll = require('./roll.js');  //用这个模块处理所有网络请求的信息滚动
-var service = require('./service.js');  //程序的service layer
+var online = require('../methods/online.js');  //这是整个过滤流程的最后一步
+var roll = require('../lib/roll.js');  //用这个模块处理所有网络请求的信息滚动
+var service = require('../lib/service.js');  //程序的service layer
 
 //设置sifter可用的Handler
 var methods = {
-	local: require('./methods/local.js'),  //用本地文件相应请求
-	remote: require('./methods/remote.js'),  //代理到其他测试服务器取文件
-	opm: require('./methods/opm.js')  //到opm的fastcgi
+	local: require('../methods/local.js'),  //用本地文件相应请求
+	remote: require('../methods/remote.js'),  //代理到其他测试服务器取文件
+	opm: require('../methods/opm.js')  //到opm的fastcgi
 };
 
 //启动服务
