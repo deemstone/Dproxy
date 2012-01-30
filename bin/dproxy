@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#TODO: 暂时还不知道这个if判断是干嘛用的
+if [ -x "`dirname "$0"`/node.exe" ]; then
+  "`dirname "$0"`/node.exe" "`dirname "$0"`/../fun/dproxy-cli.js" "$@"
+else
+  node "`dirname "$0"`/../fun/dproxy-cli.js" "$@"
+fi

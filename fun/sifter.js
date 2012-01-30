@@ -2,7 +2,9 @@
  * 管理路由列表
  * 负责列表的操作和url的匹配
  */
-var config = require('./settings.js').config;
+var env = require('./settings.js');
+var config = env.config;
+var paths = env.paths;
 
 /* -- 规则表数据结构 -- */
 
@@ -238,9 +240,8 @@ var path = require('path');
 var Config = require('../lib/RParser.js');  //配置文件解析器
 
 //定义一些常用目录
-var dir_base = path.join(__dirname, '../');  //程序根目录
-var dir_conf = path.join(dir_base, '/conf');
-var dir_rule = path.join(dir_conf, '/rule');
+var dir_conf = path.join( paths.conf );
+var dir_rule = path.join( paths.conf, '/rule');
 var fileList = [];
 
 //保存一个分组的规则到相应的文件

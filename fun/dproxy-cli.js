@@ -3,13 +3,16 @@
  * 处理启动参数,用户界面
  */
 var proxy = require('./proxy.js');
-var config = require('./settings.js').config;
-
-var PORT = config.port || 7070;  //开发的时候用7777 , 应用中一般用7070
-
 proxy.shutdown = function(){
 	process.exit(0);
 };
+
+//初始化配置和运行环境参数
+var env = require('./settings.js');
+var paths = env.paths;
+var config = env.config;
+
+var PORT = config.port || 7070;  //开发的时候用7777 , 应用中一般用7070
 
 //让服务器开始监听PORT端口
 try{
@@ -22,14 +25,21 @@ try{
 
 //把所有没处理的异常信息记录在文件里
 var fs = require('fs');
-var logFile = fs.openSync('./doc/error_log.txt', 'a'); //TODO: log路径改到 /log/error_log.txt
+var path = require('path');
+var dir_log = paths.base +'/log';
+if( !path.existsSync( dir_log ) ){
+	fs.mkdirSync( dir_log );
+}
+var logFile = fs.openSync( dir_log +'/error_log.txt', 'a'); //TODO: log路径改到 /log/error_log.txt
 //处理各种错误
 process.on('uncaughtException', function(err)
 {
-	var logString = ['\n\n'];
-	logString.push('============ A New Error : '+ new Date());
-	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );
+	var logString = [];
+	logString.push('============ Error : '+ new Date());
+	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );  //TODO: 需要更详细的信息
 	logString.push( JSON.stringify(err) );
+	logString.push('\n\n');
+
 	var i = fs.writeSync(logFile, logString.join('\n\n'));
 });
 

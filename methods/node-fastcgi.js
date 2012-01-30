@@ -5,7 +5,6 @@ var events = require("events");
 var url = require("url");
 var inherits = require("util").inherits;
 var HTTPParser = process.binding("http_parser").HTTPParser;
-var fs = require('fs');
 var __i = 0;
 
 /*

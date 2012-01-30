@@ -1,5 +1,4 @@
 var http = require('http');
-var fs = require('fs');
 
 //构造请求head 取回文件
 exports.serve = function(req, res, vector){
