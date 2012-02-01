@@ -24,7 +24,7 @@ exports.paths = {
 };
 
 //加载用户的配置信息
-var filepath = path.resolve(dir_base, '../conf/dproxy.conf');
+var filepath = path.resolve(dir_base +'/conf/dproxy.conf');
 if(path.existsSync(filepath)){
 	//console.log2('settings准备读取dproxy.conf文件');
 	var content = fs.readFileSync(filepath, "utf8");

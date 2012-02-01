@@ -37,7 +37,7 @@ process.on('uncaughtException', function(err)
 	var logString = [];
 	logString.push('============ Error : '+ new Date());
 	logString.push('MemoryUsage: '+ JSON.stringify(process.memoryUsage()) );  //TODO: 需要更详细的信息
-	logString.push( JSON.stringify(err) );
+	logString.push( err.stack );
 	logString.push('\n\n');
 
 	var i = fs.writeSync(logFile, logString.join('\n\n'));
