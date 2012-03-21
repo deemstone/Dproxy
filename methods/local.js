@@ -86,6 +86,10 @@ function getMIME(fpath){
 	if(!ext){
 		return 'text/plain';
 	}
+
+	ext = ext.substr(1);
+	//ext = ext[0].substr(1);
+	
 	ext = ext[0].substr(1);
 	return mime_type[ ext ];
 }
