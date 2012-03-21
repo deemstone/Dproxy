@@ -1,9 +1,6 @@
 var fastcgi = require("./node-fastcgi");
 
-//TODO: Fastcgi服务没开?? 超时??
-
-
-var agent = new fastcgi.Agent(4);  //每个fastcgi服务最多起几个连接
+var agent = exports.agent = new fastcgi.Agent(4);  //每个fastcgi服务最多起几个连接
 var reqs = 0;
 var resps = 0;
 

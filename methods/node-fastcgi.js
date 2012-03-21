@@ -41,7 +41,7 @@ function client(host, port) {
 		["SERVER_NAME", "_"]
 	];
 
-	var phprx = new RegExp("Status: (\\d{3}) (.*?)\\r\\n");
+	//var phprx = new RegExp("Status: (\\d{3}) (.*?)\\r\\n");
 	var _current = null;
 	
 	connection.setNoDelay(true);
@@ -51,128 +51,51 @@ function client(host, port) {
 	connection.parser.encoding = "binary";
 	connection.writer.encoding = "binary";
 	
-	htparser.onHeaderField = function (b, start, len) {
-		//console.log('htparser Header有输出!!!!!! ');
-		var slice = b.toString('ascii', start, start+len).toLowerCase();
-		if (htparser.value != undefined) {
-			var dest = _current.fcgi.headers;
-			if (htparser.field in dest) {
-				dest[htparser.field].push(htparser.value);
-			} else {
-				dest[htparser.field] = [htparser.value];
-			}
-			htparser.field = "";
-			htparser.value = "";
-		}
-		if (htparser.field) {
-			htparser.field += slice;
-		} else {
-			htparser.field = slice;
-		}
-	};
-	
-	htparser.onHeaderValue = function (b, start, len) {
-		//console.log('htparser Header Value有输出!!!!!! ');
-		var slice = b.toString('ascii', start, start+len);
-		if (htparser.value) {
-			htparser.value += slice;
-		} else {
-			htparser.value = slice;
-		}
-	};
-
-	htparser.onHeadersComplete = function (info) {
-		//console.log('htparser Header Complete有输出!!!!!! ');
-		if (htparser.field && (htparser.value != undefined)) {
-			var dest = _current.fcgi.headers;
-			if (htparser.field in dest) {
-				dest[htparser.field].push(htparser.value);
-			} else {
-				dest[htparser.field] = [htparser.value];
-			}
-			htparser.field = null;
-			htparser.value = null;
-		}
-		_current.fcgi.info = info;
-		_current.resp.statusCode = info.statusCode;
-		for(header in _current.fcgi.headers) {
-			var head = _current.fcgi.headers[header];
-			if(head.length > 1) {
-				_current.resp.setHeader(header, head);
-			}
-			else {
-				_current.resp.setHeader(header, head[0]);
-			}
-		}
-	}
-
-	htparser.onBody = function(buffer, start, len) {
-		//console.log('htparser也有输出!!!! ');
-		_current.resp.write(buffer.slice(start, start + len));
-	}
-	
 	connection.parser.onHeader = function(header) {
 		_current = requests[header.recordId];
 	}
 	
 	connection.parser.onBody = function(buffer, start, len) {
 		if(!_current.fcgi.body) {
-			htparser.reinitialize("response");
-			_current.fcgi.headers = {};
-			//var status = buffer.slice(start, 100).toString();
-			//var match = status.match(phprx);
-			//if(match) {
-			//	var header = match[0];
-			//	var buff = buffer.slice(start + header.length, start + len);
-			//	status = new Buffer("HTTP/1.1 " + match[1] + " " + match[2] + "\r\n");
-			//	try {
-			//		var parsed = htparser.execute(status, 0, status.length);
-			//		var parsed = htparser.execute(buff, 0, buff.length);
-			//		if(parsed.bytesParsed) {
-			//			_current.resp.write(buff.slice(start + parsed.bytesParsed, start + len));
-			//		}
-			//	}
-			//	catch(ex) {
-			//		_current.cb(ex);
-			//	}
-			//}
-			//else {
-				var header = new Buffer("HTTP/1.1 200 OK\r\n");  //!!!这个是临时解决  如果没有这个, 状态码那部分buffer会返回给浏览器....
-				var responseText = buffer.toString("utf8", start, start + len);
-				//TODO: 解析成map
-				//临时只把状态码取出来  临时解决!!!!
-				var regex = /Status: (\d+)/; 
-				var r = responseText.match(regex)[1];
-				//console.log(r);
-				var status = r || 500;
-				_current.resp.writeHeader(status);
+			//_current.fcgi.headers = {};
 
-				var opts = connection.options
-				_current.cb(false, {status: status, opm: {host:host, port:port, root: opts.root}});  //TODO: 一定要找到response的事件!!临时发个...
-				try {
-					var parsed = htparser.execute(header, 0, status.length);
-					var parsed = htparser.execute(buffer, start, len);
-					if(parsed.bytesParsed) {
-						_current.resp.write(buffer.slice(start + parsed.bytesParsed, start + len));
-					}
-				}
-				catch(ex) {
-					_current.cb(ex);
-				}
-			//}
-			_current.fcgi.body = true;
-		}
-		else {
+			//准备输出相关配置信息
+			var opts = connection.options
+			var responseText = buffer.toString('ascii', start, len);
+
+			//临时只把状态码取出来  临时解决!!!!
+			var rgx_status = /Status: (\d+)/; 
+			var rgx_type = /Content-Type: (.+)$/m ; 
+
+			var r = responseText.match(rgx_status)[1];
+			var status = r || '500';  //如果没有指定状态码,认为是opm内部出错了
+
+			//其他header字段
+			var headers = {};
+			var t = responseText.match(rgx_type);
+			if(t){ //例如404的请求没有content-type
+				headers["Content-Type"] = t[1];
+			//var content_type = t || 'text/html';
+			}
+
+			_current.resp.writeHeader(status, headers);
+			
+			//method的标准输出
+			var opts = connection.options
+			_current.cb(false, {status: status, opm: {host:host, port:port, root: opts.root}});
+			
 			try {
-				var parsed = htparser.execute(buffer, start, len);
-				if(parsed instanceof Error) {
-				//if(parsed.message == "Parse Error" && ("bytesParsed" in parsed)) {
-				  //console.log('htparser也有输出!!!! -- 22222');
-				  //_current.resp.write(buffer.slice(start + parsed.bytesParsed, start + len));
-				  var output = new Buffer(len - parsed.bytesParsed);  //为了解决那个代码乱续的问题,buffer这个变量会重用的,所以必须copy出来用于输出
-				  buffer.copy(output, 0, start + parsed.bytesParsed, start + len);  //更本质的问题是,这两个stream的读写(fastcgi连接和web服务连接)是异步的
+				_current.resp.write(buffer.slice(start, start + len));
+			}
+			catch(ex) {
+				_current.cb(ex);
+			}
+			_current.fcgi.body = true;  //标示下一次onBody事件得到的数据是HTTP的body
+		} else {
+			try {
+				  var output = new Buffer(len);  //为了解决那个代码乱续的问题,buffer这个变量会重用的,所以必须copy出来用于输出
+				  buffer.copy(output, 0, start, start + len);  //更本质的问题是,这两个stream的读写(fastcgi连接和web服务连接)是异步的
 				  _current.resp.write(output);
-				}
 			}
 			catch(ex){
 				_current.cb(ex);
