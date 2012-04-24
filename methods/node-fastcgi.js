@@ -84,12 +84,12 @@ function client(host, port) {
 			var opts = connection.options
 			_current.cb(false, {status: status, opm: {host:host, port:port, root: opts.root}});
 			
-			try {
-				_current.resp.write(buffer.slice(start, start + len));
-			}
-			catch(ex) {
-				_current.cb(ex);
-			}
+			//try {
+			//	_current.resp.write(buffer.slice(start, start + len));
+			//}
+			//catch(ex) {
+			//	_current.cb(ex);
+			//}
 			_current.fcgi.body = true;  //标示下一次onBody事件得到的数据是HTTP的body
 		} else {
 			try {
