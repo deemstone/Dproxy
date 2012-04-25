@@ -18,13 +18,25 @@ var config = {};  //配置文件的数据结构
 
 //准备一些常用路径
 var dir_base = path.resolve( __dirname + '/../');  //程序根目录
-exports.paths = {
+var paths = {
 	base: dir_base,
-	conf: path.resolve( dir_base + '/conf')
+	conf: path.resolve( dir_base + '/conf'),
+	rule: path.resolve( dir_base + '/conf/rule')
 };
 
+//查看$HOME/.dproxy是否存在;从这里查找配置文件
+var home_dproxy = path.resolve(process.env['HOME'] + '/.dproxy');
+if(path.existsSync( home_dproxy) ){
+	paths.conf = home_dproxy;
+	//接着判断这目录下面是否有个rule目录
+	var home_rule = path.resolve(home_dproxy + '/rule');
+	if(path.existsSync( home_rule) ){
+		paths.rule = home_rule;
+	}
+}
+
 //加载用户的配置信息
-var filepath = path.resolve(dir_base +'/conf/dproxy.conf');
+var filepath = path.resolve(paths.conf +'/dproxy.conf');
 if(path.existsSync(filepath)){
 	//console.log2('settings准备读取dproxy.conf文件');
 	var content = fs.readFileSync(filepath, "utf8");
@@ -46,6 +58,7 @@ if(path.existsSync(filepath)){
 	}
 }
 exports.config = config;
+exports.paths = paths;  //统一文件路径变量
 
 //var setting = function(){};
 //setting.prototype = {

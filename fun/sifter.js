@@ -240,8 +240,8 @@ var path = require('path');
 var Config = require('../lib/RParser.js');  //配置文件解析器
 
 //定义一些常用目录
-var dir_conf = path.join( paths.conf );
-var dir_rule = path.join( paths.conf, '/rule');
+//var dir_conf = path.join( paths.conf );
+var dir_rule = paths.rule;
 var fileList = [];
 
 //保存一个分组的规则到相应的文件
