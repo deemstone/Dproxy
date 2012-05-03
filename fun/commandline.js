@@ -3,6 +3,7 @@
  * 依赖shell
  */
 var shell = require('../lib/shell.js');
+var env = require('./settings.js');
 
 //由app.js传进来的proxy实例
 var proxy;
@@ -88,6 +89,8 @@ function auto_groups(){
 shell.command('status', function(args, next){
 	//打印系统运行状况
 	shell.print('Platform: '+ process.platform);
+	shell.print('ConfigFile: '+ env.paths.configfile);
+	shell.print('ConfigPath: '+ env.paths.conf);
 	//console.log('Has running: %s min', process.uptime()/60 );
 	var usage = process.memoryUsage();
 	var info = ['Memory usage:'];

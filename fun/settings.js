@@ -90,6 +90,7 @@ if(cfilepath){
 	//用命令行参数覆盖configfile的设置
 	if( options.port ) config.port = options.port;
 }
+paths.configfile = cfilepath;
 
 exports.config = config;
 exports.paths = paths;  //统一文件路径变量
