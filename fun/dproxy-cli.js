@@ -1,3 +1,11 @@
+//解析命令行参数
+require('./options-parser.js');
+//初始化配置和运行环境参数
+var env = require('./settings.js');
+var paths = env.paths;
+var config = env.config;
+
+var PORT = config.port || 7070;  //开发的时候用7777 , 应用中一般用7070
 /*
  * Dproxy入口程序
  * 处理启动参数,用户界面
@@ -7,12 +15,7 @@ proxy.shutdown = function(){
 	process.exit(0);
 };
 
-//初始化配置和运行环境参数
-var env = require('./settings.js');
-var paths = env.paths;
-var config = env.config;
 
-var PORT = config.port || 7070;  //开发的时候用7777 , 应用中一般用7070
 
 //让服务器开始监听PORT端口
 try{

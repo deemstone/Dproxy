@@ -10,6 +10,7 @@
  *    paths: 程序所处的路径
  * }
  */
+var options = process.options;  //在options-parser中的结果
 var path = require('path');
 var fs = require('fs');
 var Config = require('../lib/RParser.js');
@@ -24,23 +25,47 @@ var paths = {
 	rule: path.resolve( dir_base + '/conf/rule')
 };
 
-//查看$HOME/.dproxy是否存在;从这里查找配置文件
-var home_dproxy = path.resolve(process.env['HOME'] + '/.dproxy');
-if(path.existsSync( home_dproxy) ){
-	paths.conf = home_dproxy;
-	//接着判断这目录下面是否有个rule目录
-	var home_rule = path.resolve(home_dproxy + '/rule');
-	if(path.existsSync( home_rule) ){
+/*
+ * 关于配置文件路径:
+ *
+ * 对于dproxy,配置文件是一整个目录结构, 目录下有dproxy.conf配置文件 和 rule目录
+ * 指定配置目录的方式有两种: 默认位置, 命令行参数指定
+ * 默认位置有两个: 程序所在目录, 个人家目录的.dproxy目录
+ * 命令行参数: dproxy会从指定的字符串中提取出路径作为配置路径
+ * 所有命令行参数的优先级最高,如果想要使用同一个rule目录,在不同的端口开启多个服务,可以用port参数指定不同端口实现
+ *
+ * 优先级顺序 : 命令行参数 > .dproxy目录 > 程序所在目录 > 默认值
+ */
+
+//开始处理配置文件路径
+var cfilepath = path.resolve(paths.conf + 'dproxy.conf');
+
+//命令行指定的配置文件优先级最高
+if(options.config){
+	cfilepath = options.config;
+	paths.conf = path.dirname(cfilepath);
+	paths.rule = path.resolve(paths.conf + '/rule');
+}else{
+	//查看$HOME/.dproxy是否存在;从这里查找配置文件
+	var home_dproxy = path.resolve(process.env['HOME'] + '/.dproxy');
+	var filepath = path.resolve(home_dproxy +'/dproxy.conf');
+	if(path.existsSync(filepath) ){ //path.existsSync( home_dproxy) &&
+		paths.conf = home_dproxy;
+		cfilepath = filepath;
+		//接着判断这目录下面是否有个rule目录
+		var home_rule = path.resolve(home_dproxy + '/rule');
+		//if(path.existsSync( home_rule) ){
 		paths.rule = home_rule;
+		//}
 	}
 }
 
-//加载用户的配置信息
-var filepath = path.resolve(paths.conf +'/dproxy.conf');
-if(path.existsSync(filepath)){
+//读取指定配置文件的内容,解析成键值对象
+function readConfigFile(filepath){
 	//console.log2('settings准备读取dproxy.conf文件');
 	var content = fs.readFileSync(filepath, "utf8");
 	var table = Config.parseTable(content);
+	var config = {};
 
 	//把键值对解析出来
 	table.forEach(function(line){
@@ -56,37 +81,16 @@ if(path.existsSync(filepath)){
 	if(table['handler']){
 		config['handler'] = Config.buildHandlerList(table['handler']);
 	}
+	return config;
 }
+
+//输出结果
+if(cfilepath){
+	config = readConfigFile(cfilepath);
+	//用命令行参数覆盖configfile的设置
+	if( options.port ) config.port = options.port;
+}
+
 exports.config = config;
 exports.paths = paths;  //统一文件路径变量
-
-//var setting = function(){};
-//setting.prototype = {
-//	_options: {},
-//	//
-//	//添加一个设置项
-//	option: function(opt ){
-//	
-//	},
-//
-//	//加载一个配置文件
-//	//param configFile
-//	load: function(file){
-//	
-//	
-//	},
-//
-//	save: function(){
-//	
-//	},
-//
-//	//getter
-//	get: function(){
-//	
-//	},
-//
-//	//setter
-//	set: function(){
-//	
-//	}
-//};
+//console.log( config, paths);

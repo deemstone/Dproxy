@@ -39,3 +39,11 @@ group : list add del on off
 info
 roll
 
+启动参数
+-------
+-c --config  指定配置文件  
+-p --port  指定服务端口号  
+--debug  调试模式运行  
+--mode  运行模式  
+--sock  指定通讯socket文件  
+
