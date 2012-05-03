@@ -68,11 +68,8 @@ console.log3 = function(){
  * GUI外壳程序
  */
 
-//命令行参数解析
-var socketfile = process.argv[2];  //从命令行参数里取第三个参数,是否指定了socket文件
-
 //如果有指定socketfile,启用支持GUI的IPC模式
-if(socketfile){
+if(process.options.sock){
 	var IPC = require('./IPCAgent.js');
 
 	//用制定的socketfile建立连接
