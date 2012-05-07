@@ -89,8 +89,14 @@ if(cfilepath){
 	config = readConfigFile(cfilepath);
 	//用命令行参数覆盖configfile的设置
 	if( options.port ) config.port = options.port;
+	if( options.editor ) config.editor = options.editor;
 }
 paths.configfile = cfilepath;
+
+//用分组名字拼出该.rule文件的完整路径
+exports.getRpath = function( groupname ){
+	return paths.rule +'/'+ groupname +'.rule';
+};
 
 exports.config = config;
 exports.paths = paths;  //统一文件路径变量

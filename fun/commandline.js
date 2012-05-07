@@ -4,6 +4,7 @@
  */
 var shell = require('../lib/shell.js');
 var env = require('./settings.js');
+var exec = require('child_process').exec;
 
 //由app.js传进来的proxy实例
 var proxy;
@@ -142,6 +143,22 @@ shell.command('down', function(args, next){
 		if(err) shell.print(err);
 		next('groups');
 	});
+}, auto_groups);
+//编辑某个分组,用默认编辑器打开对应的rule文件
+shell.command('edit', function(args, next){
+	if(!args.length){ //必须指定分组名
+		shell.print( '必须指定分组名' );
+		next();
+		return;
+	}
+	if(!env.config.editor){
+		shell.print( '配置文件中没有指定editor' );
+		next();
+		return;
+	}
+	//调用默认编辑器
+	var cmdStr = env.config.editor +' '+ env.getRpath( args[0] );  //editor /path/to/.rule
+	exec(cmdStr, {cwd: env.paths.conf});  //在配置目录下执行编辑命令
 }, auto_groups);
 //查看规则列表
 shell.command('ls', function(args, next){
