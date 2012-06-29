@@ -8,6 +8,7 @@ var service = require('../lib/service.js');  //程序的service layer
 
 //设置sifter可用的Handler
 var methods = {
+	build: require('../methods/build.js'),
 	local: require('../methods/local.js'),  //用本地文件相应请求
 	remote: require('../methods/remote.js'),  //代理到其他测试服务器取文件
 	opm: require('../methods/opm.js')  //到opm的fastcgi
@@ -27,11 +28,13 @@ exports.server = http.createServer(function(request, response) {
 
 		//找到了匹配的handler
 		if(handler.method in methods){
-			var param = { pipe: pipe, match: ret.match, uri: ret.uri};
+			ret.pipe = pipe;
+			var vector = ret;
+			//var param = { pipe: pipe, match: ret.match, uri: ret.uri};
 			for (var property in handler) { //TODO: 工具库里面应该支持extend方法!!!
-				param[property] = handler[property];
+				vector[property] = handler[property];
 			}
-			methods[handler.method].serve(request, response, param);
+			methods[handler.method].serve(request, response, vector);
 		}else{
 			//没有这个模块.. 可能是配置文件写错了
 			var error = new Error('没有这个类型的handler: '+ handler.method);
