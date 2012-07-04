@@ -2,7 +2,13 @@
  * 调用build编译工程文件
  */
 //var builder = require('D:/Tools/build/');
+
+//暂时不支持配置
+try{
 var builder = require('/Users/Lijicheng/works/build');
+}catch(e){
+var builder = {};
+}
 var path = require('path');
 
 exports.serve = function(req, res, vector){

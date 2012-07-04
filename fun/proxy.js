@@ -14,6 +14,7 @@ var methods = {
 	opm: require('../methods/opm.js')  //到opm的fastcgi
 };
 
+
 //启动服务
 exports.server = http.createServer(function(request, response) {
 	//console.log('['+ request.connection.remoteAddress + '] --> : new Request - ', request.url);
