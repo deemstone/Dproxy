@@ -38,13 +38,13 @@
 // Sample option definitions.
 var schema = [
     ['c', 'config',    ':', "Special a config file path."],
-    ['p', 'port',    ':', "Special a PORT to listen."]  //,
+    ['p', 'port',    ':', "Special a PORT to listen."],  //,
                            //function(data) {
                            //    console.log("Hello: " + data);
                            //} ],
     //['t', 'test',    '!',  'I am needed also.'],
-    //['d', '',        '',   'Enable debug mode.'],
-    //['',  'level',   ':',  'Debug level (values 0-4).'],
+    //['d', 'debug',     '',   'Enable debug mode.'],
+    ['',  'level',   ':',  'Debug level (values 0-4).']
     //['v', 'verbose', '+',  'Verbosity levels (can be used repeatedly).'],
 ];
 

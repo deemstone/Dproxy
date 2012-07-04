@@ -6,6 +6,21 @@ var paths = env.paths;
 var config = env.config;
 
 var PORT = config.port || 7070;  //开发的时候用7777 , 应用中一般用7070
+
+//log工具
+var _log_level = process.options.level || 0;  //支持命令行制定运行级别
+console.log1 = function(){
+	if(_log_level < 1) return;
+	console.info.apply(console, arguments)
+};
+console.log2 = function(){
+	if(_log_level < 2) return;
+	console.info.apply(console, arguments)
+};
+console.log3 = function(){
+	if(_log_level < 3) return;
+	console.info.apply(console, arguments)
+};
 /*
  * Dproxy入口程序
  * 处理启动参数,用户界面
@@ -46,20 +61,6 @@ process.on('uncaughtException', function(err)
 	var i = fs.writeSync(logFile, logString.join('\n\n'));
 });
 
-//log工具
-var _log_level = 0;
-console.log1 = function(){
-	if(_log_level < 1) return;
-	console.info.apply(console, arguments)
-};
-console.log2 = function(){
-	if(_log_level < 2) return;
-	console.info.apply(console, arguments)
-};
-console.log3 = function(){
-	if(_log_level < 3) return;
-	console.info.apply(console, arguments)
-};
 
 /**
  * 启动时候的可选参数

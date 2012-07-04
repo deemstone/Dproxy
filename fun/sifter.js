@@ -263,6 +263,7 @@ function loadGroupFile(filename, enable){
 	var fpath = path.join( dir_rule , filename);
 
 	var content = fs.readFileSync(fpath, 'utf8');
+		console.log2('读取配置文件：', fpath);
 	try{
 		var group = Config.parse(content);
 	}catch(e){
@@ -270,7 +271,7 @@ function loadGroupFile(filename, enable){
 		return -1;
 	}
 
-
+	console.log3('解析结果： ', group);
 	//开始处理这个分组的信息
 	var records = group.rules;  //处理rules列表
 	group.rules = {};

@@ -15,6 +15,13 @@ var path = require('path');
 var fs = require('fs');
 var Config = require('../lib/RParser.js');
 
+//0.6版本的node 没有这个属性
+path.sep = path.join('x', 'x')[1];
+//将路径转换为unix标准正斜杠形式
+path.toUnix = function(p){
+	return p.replace(/\\/g, '/');
+};
+
 var config = {};  //配置文件的数据结构
 
 //准备一些常用路径
@@ -38,7 +45,7 @@ var paths = {
  */
 
 //开始处理配置文件路径
-var cfilepath = path.resolve(paths.conf + 'dproxy.conf');
+var cfilepath = path.join(paths.conf , 'dproxy.conf');
 
 //命令行指定的配置文件优先级最高
 if(options.config){

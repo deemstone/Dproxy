@@ -1,12 +1,14 @@
 /*
  * 调用build编译工程文件
  */
+//var builder = require('D:/Tools/build/');
 var builder = require('/Users/Lijicheng/works/build');
 var path = require('path');
 
 exports.serve = function(req, res, vector){
 	var pipe = vector.pipe;  //输出的管道
 	var prefix = vector.prefix;  // /webpager/
+	var pkgroot = vector.root;
 	
 	var entry = vector.uri.replace( prefix, '');
 	//entry = path.join(path.dirname(entry), path.basename(entry, '.js')); 
@@ -20,7 +22,7 @@ exports.serve = function(req, res, vector){
 	var options = {
 		prefix: 'webpager',  //所有模块命名的id前缀(objectjs中的域概念)
 		wrapper: 'objectjs',  //适配浏览器端环境
-		root: '/Users/Lijicheng/works/webpager.git/',  //pkg根目录
+		root: pkgroot,  //pkg根目录
 		src: './src',
 		domains: { //管理代码的域
 			'shared': '../shared',  //基于src目录的相对路径
