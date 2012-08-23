@@ -267,7 +267,7 @@ function loadGroupFile(filename, enable){
 	try{
 		var group = Config.parse(content);
 	}catch(e){
-		console.error('配置文件解析出错: ', content);
+		console.error('配置文件解析出错: ', e.stack);
 		return -1;
 	}
 
