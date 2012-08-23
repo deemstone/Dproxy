@@ -11,6 +11,7 @@ var proxy = new Proxy();
 exports.serve = function(req, res, vector){
 	var pipe = vector.pipe;  //输出的管道
 	var targetIP = vector.ip;
+	var targetPort = vector.port;
 	//var uri = req.url.replace(/http\:\/\/[^\/]+/,'');
 	
 
@@ -52,6 +53,7 @@ exports.serve = function(req, res, vector){
 		onEnd: onEnd,
 		onError: onError
 	};
+	if(targetPort) opt.port = vector.port;
 
 /* == 设计,我希望这样使用 == */
 
