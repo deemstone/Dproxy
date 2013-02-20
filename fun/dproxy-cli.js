@@ -44,7 +44,7 @@ try{
 //把所有没处理的异常信息记录在文件里
 var fs = require('fs');
 var path = require('path');
-var dir_log = paths.base +'/log';
+var dir_log = paths.conf +'/log';  //如果全局安装--gloabl，普通用户运行权限无法操作basedir下的文件，所以改到.dproxy下存放log
 if( !path.existsSync( dir_log ) ){
 	fs.mkdirSync( dir_log );
 }

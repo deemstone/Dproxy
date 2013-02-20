@@ -6,7 +6,7 @@
     "web debug",
     "proxy"
   ],
-  "version": "0.7",
+  "version": "0.7.1",
   "homepage": "http://github.com/deemstone/Dproxy",
   "author": "Deemstone Li <deemstone@gmail.com> (http://blog.cooer.net)",
   "repository": {
@@ -22,8 +22,7 @@
     "lib": "./lib",
     "bin": "./bin"
   },
-  "main": "./fun/dproxy-cli.js",
-  "bin": "./fun/dproxy-cli.js",
+  "bin": "./cli.js",
   "dependencies": {
   },
   "bundleDependencies": [
@@ -32,11 +31,9 @@
   "devDependencies": {
   },
   "engines": {
-    "node": "0.6 || 0.7 || 0.8",
-    "npm": "1"
+    "node": "0.6 || 0.7 || 0.8"
   },
   "scripts": {
-    "test": "node ./test/run.js",
+    "test": "node ./test/run.js"
   }
 }
-

@@ -55,16 +55,25 @@ if(options.config){
 }else{
 	//查看$HOME/.dproxy是否存在;从这里查找配置文件
 	var home_dproxy = path.resolve(process.env['HOME'] + '/.dproxy');
-	var filepath = path.resolve(home_dproxy +'/dproxy.conf');
-	if(path.existsSync(filepath) ){ //path.existsSync( home_dproxy) &&
-		paths.conf = home_dproxy;
-		cfilepath = filepath;
-		//接着判断这目录下面是否有个rule目录
-		var home_rule = path.resolve(home_dproxy + '/rule');
-		//if(path.existsSync( home_rule) ){
-		paths.rule = home_rule;
-		//}
+	//如果还没有.dproxy就mkdir一个新的
+	if( !path.existsSync(home_dproxy) ){
+		require('child_process').exec('cp -R '+ paths.base +'/conf ~/.dproxy');
 	}
+	var filepath = path.resolve(home_dproxy +'/dproxy.conf');
+	if( !path.existsSync(filepath) ){
+		console.info();
+		console.info('第一次使用，先看一下~/.dproxy目录');
+		console.info('用sample创建一个dproxy.conf文件');
+		console.info();
+		console.info('  ^_^');
+		console.info();
+		process.exit(1);
+	}
+	paths.conf    = home_dproxy;
+	cfilepath     = filepath;
+	//接着判断这目录下面是否有个rule目录
+	var home_rule = path.resolve(home_dproxy + '/rule');
+	paths.rule   = home_rule;
 }
 
 //读取指定配置文件的内容,解析成键值对象
