@@ -45,7 +45,7 @@ try{
 var fs = require('fs');
 var path = require('path');
 var dir_log = paths.conf +'/log';  //如果全局安装--gloabl，普通用户运行权限无法操作basedir下的文件，所以改到.dproxy下存放log
-if( !path.existsSync( dir_log ) ){
+if( !fs.existsSync( dir_log ) ){
 	fs.mkdirSync( dir_log );
 }
 var logFile = fs.openSync( dir_log +'/error_log.txt', 'a'); //TODO: log路径改到 /log/error_log.txt

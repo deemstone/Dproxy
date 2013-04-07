@@ -56,11 +56,11 @@ if(options.config){
 	//查看$HOME/.dproxy是否存在;从这里查找配置文件
 	var home_dproxy = path.resolve(process.env['HOME'] + '/.dproxy');
 	//如果还没有.dproxy就mkdir一个新的
-	if( !path.existsSync(home_dproxy) ){
+	if( !fs.existsSync(home_dproxy) ){
 		require('child_process').exec('cp -R '+ paths.base +'/conf ~/.dproxy');
 	}
 	var filepath = path.resolve(home_dproxy +'/dproxy.conf');
-	if( !path.existsSync(filepath) ){
+	if( !fs.existsSync(filepath) ){
 		console.info();
 		console.info('第一次使用，先看一下~/.dproxy目录');
 		console.info('用sample创建一个dproxy.conf文件');
